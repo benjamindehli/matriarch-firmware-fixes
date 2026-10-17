@@ -1,0 +1,19 @@
+# Moog's copyrighted material: firmware, manuals, release notes, updater.
+# Never commit these, including patched firmware (it's still Moog's firmware).
+temp/
+out/
+*.syx
+*.SYX
+*.pdf
+*.zip
+*.pkg
+*.exe
+*.mhtml
+
+# Analysis output (decompiled Moog code, Ghidra project, extracted text)
+work/
+
+# OS / Python
+.DS_Store
+__pycache__/
+*.pyc
