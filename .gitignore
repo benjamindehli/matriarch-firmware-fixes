@@ -17,3 +17,6 @@ work/
 .DS_Store
 __pycache__/
 *.pyc
+
+# Node (Prettier)
+node_modules/

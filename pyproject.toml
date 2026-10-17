@@ -1,0 +1,18 @@
+[project]
+name = "matriarch-firmware-fixes"
+version = "0.1.0"
+description = "Unofficial bug fixes for the Moog Matriarch firmware v1.3.0"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+requires-python = ">=3.9"
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
+# pycodestyle, pyflakes, import sorting, bugbear, pyupgrade
+select = ["E", "W", "F", "I", "B", "UP"]
+
+[tool.ruff.format]
+quote-style = "single"
