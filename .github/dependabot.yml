@@ -1,0 +1,12 @@
+# Opens pull requests when the GitHub Actions used in .github/workflows get new versions,
+# so the workflows don't fall behind (for example when a Node.js runtime is deprecated).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns:
+          - "*"
