@@ -1,0 +1,79 @@
+# Lints the code, tests the patchers against Moog's official v1.3.0 firmware, and deploys the web patcher
+# (web/) to GitHub Pages when everything passes on main.
+#
+# The test job downloads Moog's firmware from the URL their own updater uses, only to test against it.
+# The firmware is never committed, published or uploaded as an artifact.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff==0.16.10
+      - run: ruff check .
+      - run: ruff format --check .
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prettier --check .
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Moog's official firmware v1.3.0 (for testing only)
+        run: |
+          url=$(jq -r .source.zip_url tests/expected.json)
+          member=$(jq -r .source.zip_member tests/expected.json)
+          dir="$RUNNER_TEMP/firmware"
+          mkdir -p "$dir"
+          curl -fsSL --retry 3 "$url" -o "$dir/firmware.zip"
+          unzip -q -j "$dir/firmware.zip" "$member" -d "$dir"
+          echo "MATRIARCH_FIRMWARE=$dir/$(basename "$member")" >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test Python tools
+        run: python -m unittest discover -s tests -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test web patcher
+        run: npm test
+
+  deploy-pages:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -32,6 +32,18 @@ def movl_xar4(value):
     return [0x8F00 | (value >> 16), value & 0xFFFF]
 
 
+def patch(fw, ms):
+    """Set the mixer gate release delay in a v1.3.0 Firmware. Returns the delay in us."""
+    if fw.read(SITE, 2) != ORIGINAL:
+        found = ' '.join(f'{w:04x}' for w in fw.read(SITE, 2))
+        raise ValueError(f'unexpected code at 0x{SITE:x}: {found} (only unpatched v1.3.0 is supported)')
+    us = int(round(ms * 1000))
+    if not 0 <= us < 1 << 22:
+        raise ValueError(f'delay out of range: {ms} ms')
+    fw.write(SITE, movl_xar4(us))
+    return us
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('src')
@@ -40,11 +52,10 @@ def main():
     args = ap.parse_args()
 
     fw = Firmware(args.src)
-    if fw.read(SITE, 2) != ORIGINAL:
-        found = ' '.join(f'{w:04x}' for w in fw.read(SITE, 2))
-        sys.exit(f'unexpected code at 0x{SITE:x}: {found} (only v1.3.0 is supported)')
-    us = int(round(args.ms * 1000))
-    fw.write(SITE, movl_xar4(us))
+    try:
+        us = patch(fw, args.ms)
+    except ValueError as e:
+        sys.exit(str(e))
     fw.save(args.dst)
     print(f'patched mixer gate release delay: 125000 us -> {us} us')
 

@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en-GB">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Matriarch Firmware Patcher: fix paraphonic staccato on the Moog Matriarch</title>
+        <meta
+            name="description"
+            content="Free browser tool that patches your own Moog Matriarch firmware v1.3.0 so released notes stop when you let go in paraphonic mode. Runs locally, nothing is uploaded."
+        />
+        <meta name="author" content="Benjamin Dehli" />
+        <meta name="robots" content="max-image-preview:large, max-snippet:-1" />
+        <link rel="canonical" href="https://benjamindehli.github.io/matriarch-firmware-fixes/" />
+        <link
+            rel="alternate"
+            type="text/markdown"
+            href="https://benjamindehli.github.io/matriarch-firmware-fixes/index.html.md"
+        />
+        <meta name="theme-color" content="#f3f2ee" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)" />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Matriarch Firmware Fixes" />
+        <meta property="og:locale" content="en_GB" />
+        <meta property="og:url" content="https://benjamindehli.github.io/matriarch-firmware-fixes/" />
+        <meta property="og:title" content="Matriarch Firmware Patcher: unofficial bug fixes for the Moog Matriarch" />
+        <meta
+            property="og:description"
+            content="A free browser tool that applies unofficial bug fixes to your own copy of the Moog Matriarch firmware v1.3.0. Everything runs locally, and nothing is uploaded."
+        />
+        <meta property="og:image" content="https://benjamindehli.github.io/matriarch-firmware-fixes/social-card.png" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta
+            property="og:image:alt"
+            content="Matriarch Firmware Patcher, a free tool for Moog Matriarch owners. Unofficial bug fixes for the Matriarch's firmware v1.3.0, by Dehli Musikk."
+        />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Matriarch Firmware Patcher: unofficial bug fixes for the Moog Matriarch" />
+        <meta
+            name="twitter:description"
+            content="A free browser tool that applies unofficial bug fixes to your own copy of the Moog Matriarch firmware v1.3.0. Everything runs locally, and nothing is uploaded."
+        />
+        <meta name="twitter:image" content="https://benjamindehli.github.io/matriarch-firmware-fixes/social-card.png" />
+        <meta
+            name="twitter:image:alt"
+            content="Matriarch Firmware Patcher, a free tool for Moog Matriarch owners. Unofficial bug fixes for the Matriarch's firmware v1.3.0, by Dehli Musikk."
+        />
+
+        <link rel="icon" href="dehli-musikk-logo.svg" type="image/svg+xml" />
+        <link
+            rel="icon"
+            href="dehli-musikk-logo-inverse.svg"
+            type="image/svg+xml"
+            media="(prefers-color-scheme: dark)"
+        />
+        <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+        <link rel="stylesheet" href="style.css" />
+
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@graph": [
+                    {
+                        "@type": "WebSite",
+                        "@id": "https://benjamindehli.github.io/matriarch-firmware-fixes/#website",
+                        "url": "https://benjamindehli.github.io/matriarch-firmware-fixes/",
+                        "name": "Matriarch Firmware Fixes",
+                        "inLanguage": "en-GB",
+                        "publisher": { "@id": "https://www.dehlimusikk.no/" }
+                    },
+                    {
+                        "@type": "WebPage",
+                        "@id": "https://benjamindehli.github.io/matriarch-firmware-fixes/#webpage",
+                        "url": "https://benjamindehli.github.io/matriarch-firmware-fixes/",
+                        "name": "Matriarch Firmware Patcher: fix paraphonic staccato on the Moog Matriarch",
+                        "description": "Free browser tool that patches your own Moog Matriarch firmware v1.3.0 so released notes stop when you let go in paraphonic mode. Runs locally, nothing is uploaded.",
+                        "inLanguage": "en-GB",
+                        "isPartOf": { "@id": "https://benjamindehli.github.io/matriarch-firmware-fixes/#website" },
+                        "mainEntity": { "@id": "https://benjamindehli.github.io/matriarch-firmware-fixes/#app" },
+                        "primaryImageOfPage": {
+                            "@type": "ImageObject",
+                            "url": "https://benjamindehli.github.io/matriarch-firmware-fixes/social-card.png",
+                            "width": 1200,
+                            "height": 630
+                        },
+                        "dateModified": "2026-10-18"
+                    },
+                    {
+                        "@type": "WebApplication",
+                        "@id": "https://benjamindehli.github.io/matriarch-firmware-fixes/#app",
+                        "name": "Matriarch Firmware Patcher",
+                        "url": "https://benjamindehli.github.io/matriarch-firmware-fixes/",
+                        "description": "Applies unofficial bug fixes to the Moog Matriarch firmware v1.3.0 in the browser. The first fix shortens the 125 ms paraphonic mixer gate hold so staccato playing works in paraphonic mode.",
+                        "applicationCategory": "UtilitiesApplication",
+                        "operatingSystem": "Any",
+                        "browserRequirements": "Requires JavaScript",
+                        "softwareVersion": "1.1.0",
+                        "isAccessibleForFree": true,
+                        "offers": { "@type": "Offer", "price": 0, "priceCurrency": "USD" },
+                        "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+                        "codeRepository": "https://github.com/benjamindehli/matriarch-firmware-fixes",
+                        "releaseNotes": "https://github.com/benjamindehli/matriarch-firmware-fixes/releases",
+                        "image": "https://benjamindehli.github.io/matriarch-firmware-fixes/social-card.png",
+                        "about": {
+                            "@type": "Product",
+                            "name": "Matriarch",
+                            "category": "Analog synthesizer",
+                            "brand": { "@type": "Brand", "name": "Moog" }
+                        },
+                        "featureList": [
+                            "Fixes the paraphonic mixer gate length from Moog's v1.3.0 known-issues list",
+                            "Runs entirely in the browser, the firmware file is never uploaded",
+                            "Verifies the file against Moog's official v1.3.0 checksum",
+                            "Output is byte-identical to builds tested on hardware"
+                        ],
+                        "author": {
+                            "@type": "Person",
+                            "@id": "https://musicbrainz.org/artist/56639e59-2bb5-40bd-9d5a-97d964298b6f",
+                            "name": "Benjamin Dehli",
+                            "url": "https://github.com/benjamindehli",
+                            "sameAs": ["https://www.wikidata.org/wiki/Q141757746"]
+                        },
+                        "publisher": {
+                            "@type": "Organization",
+                            "@id": "https://www.dehlimusikk.no/",
+                            "name": "Dehli Musikk",
+                            "url": "https://www.dehlimusikk.no/",
+                            "sameAs": ["https://www.wikidata.org/wiki/Q141757809"]
+                        }
+                    },
+                    {
+                        "@type": "FAQPage",
+                        "@id": "https://benjamindehli.github.io/matriarch-firmware-fixes/#questions",
+                        "mainEntity": [
+                            {
+                                "@type": "Question",
+                                "name": "Why can't I play staccato in paraphonic mode on the Moog Matriarch?",
+                                "acceptedAnswer": {
+                                    "@type": "Answer",
+                                    "text": "In firmware v1.2.3 and v1.3.0, when you release a key in 2- or 4-note paraphonic mode while other keys are still held, the Matriarch keeps that oscillator's mixer gate open for another 125 ms. Short notes and fast overlapping notes smear together. Moog lists it as the known issue \"Paraphonic Mixer Gate Length\" in the v1.3.0 release notes. This patcher shortens the hold to 5 ms or any value you choose."
+                                }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "Is my firmware file uploaded anywhere?",
+                                "acceptedAnswer": {
+                                    "@type": "Answer",
+                                    "text": "No. The patcher runs entirely in your browser. The page loads no external scripts, fonts or trackers, and the file never leaves your computer."
+                                }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "Why isn't the patched firmware available as a download?",
+                                "acceptedAnswer": {
+                                    "@type": "Answer",
+                                    "text": "The patched file is still Moog's firmware with a small change, and Moog owns the copyright. Distributing it would mean distributing Moog's firmware. The patcher lets you change your own copy instead."
+                                }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "Where do I get the Matriarch firmware v1.3.0 file?",
+                                "acceptedAnswer": {
+                                    "@type": "Answer",
+                                    "text": "From Moog's v1.3.0 firmware download, or through the Moog Firmware Updater. The file you need is Matriarch_Firmware_v1_3_0.syx."
+                                }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "Is it safe to flash patched firmware on the Matriarch?",
+                                "acceptedAnswer": {
+                                    "@type": "Answer",
+                                    "text": "The patch changes one number in one instruction and leaves the rest of the firmware byte-identical to Moog's file. The update never touches the bootloader, and both the 5 ms and 50 ms builds have been flashed and tested on a Matriarch. It's still unofficial, so you use it at your own risk."
+                                }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "How do I go back to Moog's original firmware?",
+                                "acceptedAnswer": {
+                                    "@type": "Answer",
+                                    "text": "Flash Moog's original Matriarch_Firmware_v1_3_0.syx with the same procedure: send INVALIDATE, re-select the MIDI port, send ERASE, then send the original file."
+                                }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "Which delay should I choose?",
+                                "acceptedAnswer": {
+                                    "@type": "Answer",
+                                    "text": "5 ms makes released notes stop almost immediately, which suits staccato playing. 50 ms is how firmware v1.1.0 behaved, before the hold was raised to 125 ms. Moog's reason for the hold was to avoid completely missing quickly played notes, so if very short taps feel too quiet, try a value in between."
+                                }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "Does the patch affect Multi Trig or the stuck-envelope fixes?",
+                                "acceptedAnswer": {
+                                    "@type": "Answer",
+                                    "text": "No. The envelope retrigger timing that fixed stuck envelopes in Multi Trig mode is separate code with its own value, and the patch doesn't change it."
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        </script>
+    </head>
+    <body>
+        <a class="skip" href="#main">Skip to the content</a>
+
+        <div class="page">
+            <header class="site-header">
+                <a class="home" href="./">Matriarch Firmware Fixes</a>
+                <nav aria-label="Sections">
+                    <ul>
+                        <li><a href="#patcher">Patcher</a></li>
+                        <li><a href="#fix">What it fixes</a></li>
+                        <li><a href="#questions">Questions</a></li>
+                    </ul>
+                </nav>
+            </header>
+            <div class="stripe" aria-hidden="true"></div>
+
+            <main id="main" tabindex="-1">
+                <h1>Matriarch Firmware Patcher</h1>
+                <p class="lead">
+                    Apply unofficial bug fixes to your own copy of the Moog Matriarch firmware v1.3.0. The first fix
+                    makes released notes stop when you let go in paraphonic mode, so staccato playing works again.
+                    Everything happens in your browser. Your file is never uploaded.
+                </p>
+
+                <ul class="links">
+                    <li>
+                        <a href="https://github.com/benjamindehli/matriarch-firmware-fixes">
+                            <svg viewBox="0 0 16 16" aria-hidden="true">
+                                <path
+                                    d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"
+                                />
+                            </svg>
+                            Source on GitHub
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/login?return_to=%2Fbenjamindehli%2Fmatriarch-firmware-fixes">
+                            <svg viewBox="0 0 16 16" aria-hidden="true">
+                                <path
+                                    d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"
+                                />
+                            </svg>
+                            Star the repo
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/login?return_to=%2Fbenjamindehli">
+                            <svg viewBox="0 0 16 16" aria-hidden="true">
+                                <path
+                                    d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"
+                                />
+                            </svg>
+                            Follow @benjamindehli
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="notice">
+                    <strong>Unofficial. Use at your own risk.</strong> This project isn't affiliated with or endorsed by
+                    Moog Music. You can always go back by flashing Moog's original firmware.
+                </div>
+
+                <noscript><p>This patcher needs JavaScript to run.</p></noscript>
+
+                <div id="patcher">
+                    <section class="card" aria-labelledby="step1">
+                        <h2 id="step1"><span class="step" aria-hidden="true">1</span>Choose Moog's firmware file</h2>
+                        <label class="drop" id="drop">
+                            <input type="file" id="file" accept=".syx,.SYX" />
+                            <span><strong>Choose a file</strong> or drop it here</span><br />
+                            <span class="hint"
+                                >Matriarch_Firmware_v1_3_0.syx, from Moog's v1.3.0 download or the Moog Firmware
+                                Updater</span
+                            >
+                        </label>
+                        <p class="status" id="status" role="status" aria-live="polite"></p>
+                    </section>
+
+                    <section class="card" id="options" aria-labelledby="step2" aria-disabled="true">
+                        <h2 id="step2"><span class="step" aria-hidden="true">2</span>Choose the fix</h2>
+                        <fieldset id="mixgate" disabled>
+                            <legend>Paraphonic mixer gate length</legend>
+                            <p class="hint">
+                                In paraphonic mode, a released key keeps sounding for 125 ms while other keys are held.
+                                Choose how long it should keep sounding instead.
+                            </p>
+                            <label class="option">
+                                <input type="radio" name="ms" value="5" checked />
+                                <span>5 ms<small>Released notes stop almost immediately. Recommended.</small></span>
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="ms" value="50" />
+                                <span>50 ms<small>The same behaviour as firmware v1.1.0.</small></span>
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="ms" value="custom" />
+                                <span
+                                    >Custom:
+                                    <input
+                                        type="number"
+                                        id="custom-ms"
+                                        min="0"
+                                        max="125"
+                                        step="1"
+                                        value="20"
+                                        aria-label="Custom delay in milliseconds"
+                                    />
+                                    ms<small>Any whole number from 0 to 125.</small></span
+                                >
+                            </label>
+                        </fieldset>
+                    </section>
+
+                    <section class="card" id="download-step" aria-labelledby="step3" aria-disabled="true">
+                        <h2 id="step3"><span class="step" aria-hidden="true">3</span>Download and flash</h2>
+                        <p><a class="button" id="download" aria-disabled="true">Download patched firmware</a></p>
+                        <p class="hint" id="download-name"></p>
+                        <p>
+                            Flash it with a SysEx tool (SysEx Librarian on macOS, Bome SendSX on Windows) using Moog's
+                            normal procedure:
+                        </p>
+                        <ol class="flash">
+                            <li>Send <code>Matriarch_FIRMWARE_INVALIDATE.syx</code>.</li>
+                            <li>Re-select the Matriarch as the MIDI output (it reboots).</li>
+                            <li>Send <code>Matriarch_FIRMWARE_ERASE.syx</code>.</li>
+                            <li>Send the patched file.</li>
+                        </ol>
+                        <p class="hint">
+                            Use a direct USB cable and don't touch the synth during the transfer. To go back to stock,
+                            repeat the steps with Moog's original file.
+                        </p>
+                    </section>
+                </div>
+
+                <section aria-labelledby="fix">
+                    <h2 id="fix">What it fixes</h2>
+                    <h3>Paraphonic Mixer Gate Length</h3>
+                    <p>
+                        Each of the Matriarch's four oscillators has a gate in front of the mixer that opens when a key
+                        assigns a note to it. In 2- and 4-note paraphonic mode, firmware v1.3.0 doesn't close that gate
+                        when you release a key while other keys are still held. It waits another 125 ms first. Staccato
+                        notes over a held note, and fast passages where the next key goes down before the last one comes
+                        up, smear together.
+                    </p>
+                    <p>
+                        Moog lists this as a known issue in the v1.3.0 release notes:
+                        <em>"Paraphonic Mixer Gate Length - Mixer gate can stay high longer than keys are pressed."</em>
+                        The hold was added on purpose, to avoid completely missing quickly played notes, and it has
+                        grown since firmware v1.1.0:
+                    </p>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Firmware</th>
+                                    <th scope="col">Hold after key-up</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>v1.1.0</td>
+                                    <td>50 ms</td>
+                                </tr>
+                                <tr>
+                                    <td>v1.2.3</td>
+                                    <td>125 ms</td>
+                                </tr>
+                                <tr>
+                                    <td>v1.3.0</td>
+                                    <td>125 ms</td>
+                                </tr>
+                                <tr>
+                                    <td>v1.3.0, patched</td>
+                                    <td>5 ms, 50 ms or your own value</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>
+                        The patch changes the one value that sets the hold. When you release the last key, the VCA
+                        envelope's release shapes the tail exactly as before, and Multi Trig and its envelope retrigger
+                        timing are untouched. The
+                        <a href="https://github.com/benjamindehli/matriarch-firmware-fixes#how-the-fix-works"
+                            >technical details</a
+                        >
+                        are in the repository.
+                    </p>
+
+                    <h3>Other known issues in v1.3.0</h3>
+                    <p>These are on Moog's list but not fixed here yet:</p>
+                    <ul>
+                        <li>Send Program Change seems to have no effect.</li>
+                        <li>The arpeggiator sends Sustain CC while Hold is active.</li>
+                        <li>
+                            After Load Default Settings, global mode acts as if A#3 is held down until a power cycle.
+                        </li>
+                        <li>Sequence Random Repeat and Sequence Keyed Restart seem to have no effect.</li>
+                        <li>Keyed Timing Reset doesn't work while Hold is active.</li>
+                        <li>Delay Sync CV Bend can be stepped when it should be smooth.</li>
+                    </ul>
+                    <p>
+                        If one of these affects you, say so in the
+                        <a href="https://github.com/benjamindehli/matriarch-firmware-fixes/issues">issue tracker</a>.
+                    </p>
+                </section>
+
+                <section aria-labelledby="questions">
+                    <h2 id="questions">Questions</h2>
+                    <details>
+                        <summary>Why can't I play staccato in paraphonic mode on the Moog Matriarch?</summary>
+                        <p>
+                            In firmware v1.2.3 and v1.3.0, when you release a key in 2- or 4-note paraphonic mode while
+                            other keys are still held, the Matriarch keeps that oscillator's mixer gate open for another
+                            125 ms. Short notes and fast overlapping notes smear together. Moog lists it as the known
+                            issue "Paraphonic Mixer Gate Length" in the v1.3.0 release notes. This patcher shortens the
+                            hold to 5 ms or any value you choose.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Is my firmware file uploaded anywhere?</summary>
+                        <p>
+                            No. The patcher runs entirely in your browser. The page loads no external scripts, fonts or
+                            trackers, and the file never leaves your computer.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Why isn't the patched firmware available as a download?</summary>
+                        <p>
+                            The patched file is still Moog's firmware with a small change, and Moog owns the copyright.
+                            Distributing it would mean distributing Moog's firmware. The patcher lets you change your
+                            own copy instead.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Where do I get the Matriarch firmware v1.3.0 file?</summary>
+                        <p>
+                            From Moog's v1.3.0 firmware download, or through the Moog Firmware Updater. The file you
+                            need is <code>Matriarch_Firmware_v1_3_0.syx</code>.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Is it safe to flash patched firmware on the Matriarch?</summary>
+                        <p>
+                            The patch changes one number in one instruction and leaves the rest of the firmware
+                            byte-identical to Moog's file. The update never touches the bootloader, and both the 5 ms
+                            and 50 ms builds have been flashed and tested on a Matriarch. It's still unofficial, so you
+                            use it at your own risk.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>How do I go back to Moog's original firmware?</summary>
+                        <p>
+                            Flash Moog's original <code>Matriarch_Firmware_v1_3_0.syx</code> with the same procedure:
+                            send INVALIDATE, re-select the MIDI port, send ERASE, then send the original file.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Which delay should I choose?</summary>
+                        <p>
+                            5 ms makes released notes stop almost immediately, which suits staccato playing. 50 ms is
+                            how firmware v1.1.0 behaved, before the hold was raised to 125 ms. Moog's reason for the
+                            hold was to avoid completely missing quickly played notes, so if very short taps feel too
+                            quiet, try a value in between.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Does the patch affect Multi Trig or the stuck-envelope fixes?</summary>
+                        <p>
+                            No. The envelope retrigger timing that fixed stuck envelopes in Multi Trig mode is separate
+                            code with its own value, and the patch doesn't change it.
+                        </p>
+                    </details>
+                </section>
+            </main>
+
+            <footer>
+                <div class="maker">
+                    <picture>
+                        <source srcset="dehli-musikk-logo-inverse.svg" media="(prefers-color-scheme: dark)" />
+                        <img src="dehli-musikk-logo.svg" alt="" width="392" height="232" />
+                    </picture>
+                    <div>By Benjamin Dehli for <a href="https://www.dehlimusikk.no/">Dehli Musikk</a>.</div>
+                </div>
+
+                <ul class="elsewhere">
+                    <li><a href="https://github.com/benjamindehli/matriarch-firmware-fixes">Source</a></li>
+                    <li><a href="https://github.com/benjamindehli/matriarch-firmware-fixes/releases">Releases</a></li>
+                    <li>
+                        <a href="https://github.com/benjamindehli/matriarch-firmware-fixes/issues">Issue tracker</a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/benjamindehli/matriarch-firmware-fixes#how-to-patch-and-flash"
+                            >Command-line version</a
+                        >
+                    </li>
+                </ul>
+
+                <p>
+                    Free software under the
+                    <a href="https://github.com/benjamindehli/matriarch-firmware-fixes/blob/main/LICENSE"
+                        >GNU General Public License v3.0 or later</a
+                    >. Moog and Matriarch are trademarks of Moog Music Inc. This project isn't affiliated with Moog
+                    Music.
+                </p>
+            </footer>
+        </div>
+
+        <script type="module">
+            import { Firmware, FirmwareError } from "./matriarch-syx.js";
+            import { OFFICIAL_V1_3_0_SHA256, mixGateState, patchMixGate } from "./fixes.js";
+
+            const $ = (id) => document.getElementById(id);
+            const fileInput = $("file");
+            const drop = $("drop");
+            const status = $("status");
+            const fieldset = $("mixgate");
+            const customMs = $("custom-ms");
+            const download = $("download");
+            const downloadName = $("download-name");
+
+            let source = null; // bytes of a valid, unpatched v1.3.0 file
+            let url = null;
+            let loading = 0; // id of the newest file being read, so older reads can't overwrite it
+
+            async function sha256(bytes) {
+                if (!globalThis.crypto?.subtle) return null; // only available on https and localhost
+                const digest = await crypto.subtle.digest("SHA-256", bytes);
+                return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+            }
+
+            function setStatus(kind, text) {
+                status.className = `status ${kind}`;
+                status.textContent = text;
+            }
+
+            function enable(ready) {
+                fieldset.disabled = !ready;
+                $("options").setAttribute("aria-disabled", String(!ready));
+                $("download-step").setAttribute("aria-disabled", String(!ready));
+                if (!ready) {
+                    source = null;
+                    download.setAttribute("aria-disabled", "true");
+                    download.removeAttribute("href");
+                    downloadName.textContent = "";
+                }
+            }
+
+            function selectedMs() {
+                const choice = document.querySelector('input[name="ms"]:checked').value;
+                if (choice !== "custom") return Number(choice);
+                const ms = Number(customMs.value);
+                return Number.isInteger(ms) && ms >= 0 && ms <= 125 ? ms : null;
+            }
+
+            async function update() {
+                if (!source) return;
+                const id = loading;
+                if (url) URL.revokeObjectURL(url);
+                url = null;
+                const ms = selectedMs();
+                if (ms === null) {
+                    download.setAttribute("aria-disabled", "true");
+                    download.removeAttribute("href");
+                    downloadName.textContent = "Enter a custom delay from 0 to 125 ms.";
+                    return;
+                }
+                const fw = new Firmware(source);
+                patchMixGate(fw, ms);
+                const bytes = fw.bytes();
+                const name = `Matriarch_Firmware_v1_3_0_mixgate${ms}ms.syx`;
+                url = URL.createObjectURL(new Blob([bytes], { type: "application/octet-stream" }));
+                download.href = url;
+                download.download = name;
+                download.setAttribute("aria-disabled", "false");
+                downloadName.textContent = name;
+                const hash = await sha256(bytes);
+                if (hash && id === loading && download.download === name) {
+                    downloadName.textContent = `${name}, SHA-256 ${hash}`;
+                }
+            }
+
+            async function load(file) {
+                const id = ++loading;
+                enable(false);
+                if (!file) return;
+                setStatus("", "Reading file...");
+                try {
+                    const bytes = new Uint8Array(await file.arrayBuffer());
+                    const hash = await sha256(bytes);
+                    if (id !== loading) return;
+                    const fw = new Firmware(bytes);
+                    const gate = mixGateState(fw);
+                    if (gate.state === "patched") {
+                        setStatus(
+                            "warn",
+                            `This file is already patched (${gate.ms} ms). Start from Moog's original v1.3.0 file.`,
+                        );
+                    } else if (gate.state === "unsupported") {
+                        setStatus(
+                            "warn",
+                            `This is Matriarch firmware v${fw.version}. The patcher only supports v1.3.0.`,
+                        );
+                    } else {
+                        source = bytes;
+                        if (hash === OFFICIAL_V1_3_0_SHA256) {
+                            setStatus(
+                                "ok",
+                                "Moog's official Matriarch firmware v1.3.0 (checksum verified), ready to patch.",
+                            );
+                        } else if (hash) {
+                            setStatus(
+                                "ok",
+                                "Matriarch firmware v1.3.0, ready to patch. It isn't byte-identical to Moog's download, but its internal checksums are valid.",
+                            );
+                        } else {
+                            setStatus("ok", `Matriarch firmware v${fw.version}, ready to patch.`);
+                        }
+                        enable(true);
+                        update();
+                    }
+                } catch (err) {
+                    if (id !== loading) return;
+                    setStatus("error", err instanceof FirmwareError ? err.message : "Couldn't read this file.");
+                }
+            }
+
+            fileInput.addEventListener("change", () => load(fileInput.files[0]));
+            fieldset.addEventListener("change", update);
+            customMs.addEventListener("input", () => {
+                document.querySelector('input[name="ms"][value="custom"]').checked = true;
+                update();
+            });
+
+            for (const type of ["dragenter", "dragover"]) {
+                drop.addEventListener(type, (e) => {
+                    e.preventDefault();
+                    drop.classList.add("dragging");
+                });
+            }
+            for (const type of ["dragleave", "drop"]) {
+                drop.addEventListener(type, () => drop.classList.remove("dragging"));
+            }
+            drop.addEventListener("drop", (e) => {
+                e.preventDefault();
+                load(e.dataTransfer.files[0]);
+            });
+        </script>
+    </body>
+</html>

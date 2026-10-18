@@ -75,6 +75,12 @@ class Firmware:
         if bad:
             raise ValueError(f'{len(bad)} records with bad checksum')
 
+    @property
+    def version(self):
+        """Firmware version from the header record, e.g. '1.3.0'."""
+        header = self.records[0].words
+        return f'{header[6]}.{header[7]}.{header[8]}'
+
     def data_records(self):
         return [r for r in self.records if r.cmd == 0x13]
 
