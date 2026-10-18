@@ -347,6 +347,25 @@
                         notes over a held note, and fast passages where the next key goes down before the last one comes
                         up, smear together.
                     </p>
+                    <figure>
+                        <a href="audio-test.webp">
+                            <img
+                                src="audio-test-1200.webp"
+                                srcset="audio-test-1200.webp 1200w, audio-test.webp 2113w"
+                                sizes="(max-width: 44rem) calc(100vw - 2.5rem), 41.5rem"
+                                width="2113"
+                                height="862"
+                                loading="lazy"
+                                alt="Waveforms in Logic Pro. A MIDI track at the top holds one long note with three short notes on top. Below it, the same part recorded three times. With the original 125 ms hold, each short note keeps sounding well after it ends. With 50 ms the tail is shorter. With 5 ms the sound goes back to the held note right where each short note ends."
+                            />
+                        </a>
+                        <figcaption>
+                            The same MIDI part recorded on a Matriarch with the original firmware (125 ms), then with
+                            each patch (50 ms and 5 ms): a held note with short notes on top. The highlighted note ends
+                            at the same point in all three. With 125 ms it keeps sounding well past the end, with 50 ms
+                            the tail is shorter, and with 5 ms it stops where the note ends.
+                        </figcaption>
+                    </figure>
                     <p>
                         Moog lists this as a known issue in the v1.3.0 release notes:
                         <em>"Paraphonic Mixer Gate Length - Mixer gate can stay high longer than keys are pressed."</em>

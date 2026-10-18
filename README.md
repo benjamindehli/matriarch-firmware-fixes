@@ -21,6 +21,10 @@ In 2- and 4-note paraphonic mode, releasing a key while another key is still hel
 
 When the _last_ key is released, the VCA envelope's release shapes the tail exactly as before.
 
+[![Waveforms in Logic Pro: the same MIDI part recorded with the original 125 ms hold, 50 ms and 5 ms. With 125 ms each short note keeps sounding well after it ends, with 5 ms it stops right at the end of the note.](web/audio-test-1200.webp)](web/audio-test.webp)
+
+_The same MIDI part recorded on a Matriarch with the original firmware (125 ms), then with each patch (50 ms and 5 ms): a held note with short notes on top. The highlighted note ends at the same point in all three. With 125 ms it keeps sounding well past the end, with 50 ms the tail is shorter, and with 5 ms it stops where the note ends._
+
 ## How to patch and flash
 
 You need Moog's official **v1.3.0** firmware (`Matriarch_Firmware_v1_3_0.syx`), which comes with the Moog Firmware Updater or Moog's v1.3.0 download.

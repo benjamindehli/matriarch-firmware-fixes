@@ -32,6 +32,10 @@ Use a direct USB cable and don't touch the synth during the transfer. To go back
 
 Each of the Matriarch's four oscillators has a gate in front of the mixer that opens when a key assigns a note to it. In 2- and 4-note paraphonic mode, firmware v1.3.0 doesn't close that gate when you release a key while other keys are still held. It waits another 125 ms first. Staccato notes over a held note, and fast passages where the next key goes down before the last one comes up, smear together.
 
+[![Waveforms in Logic Pro: the same MIDI part recorded with the original 125 ms hold, 50 ms and 5 ms. With 125 ms each short note keeps sounding well after it ends, with 5 ms it stops right at the end of the note.](https://benjamindehli.github.io/matriarch-firmware-fixes/audio-test-1200.webp)](https://benjamindehli.github.io/matriarch-firmware-fixes/audio-test.webp)
+
+_The same MIDI part recorded on a Matriarch with the original firmware (125 ms), then with each patch (50 ms and 5 ms): a held note with short notes on top. The highlighted note ends at the same point in all three. With 125 ms it keeps sounding well past the end, with 50 ms the tail is shorter, and with 5 ms it stops where the note ends._
+
 Moog lists this as a known issue in the v1.3.0 release notes: _"Paraphonic Mixer Gate Length - Mixer gate can stay high longer than keys are pressed."_ The hold was added on purpose, to avoid completely missing quickly played notes, and it has grown since firmware v1.1.0:
 
 | Firmware        | Hold after key-up             |
