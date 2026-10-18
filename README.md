@@ -95,6 +95,17 @@ npm install
 npm run format        # format Markdown and JSON
 ```
 
+## Releases
+
+Release notes live in `release-notes/`, one file per version (`release-notes/v1.0.0.md`). The first `# ` heading becomes the release title and the rest becomes the release description. To publish a release, add the notes file, commit it, then push a matching tag:
+
+```sh
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The `Release` workflow (`.github/workflows/release.yml`) then creates the GitHub release from the notes. Running it again for an existing release updates the notes.
+
 ## License
 
 Copyright (C) 2026 Benjamin Dehli

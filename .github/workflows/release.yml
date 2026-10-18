@@ -1,0 +1,39 @@
+# Creates (or updates) a GitHub release when a version tag is pushed.
+# Notes come from release-notes/<tag>.md: the first "# " heading is the release title, the rest is the body.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          notes="release-notes/${TAG}.md"
+          if [ ! -f "$notes" ]; then
+            echo "::error::Missing $notes. Add release notes for $TAG and push the tag again."
+            exit 1
+          fi
+
+          title=$(sed -n 's/^# //p' "$notes" | head -n 1)
+          title=${title:-$TAG}
+          body=$(mktemp)
+          awk 'found || !/^# / { print } /^# / { found = 1 }' "$notes" | sed '/./,$!d' > "$body"
+
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release edit "$TAG" --title "$title" --notes-file "$body"
+          else
+            gh release create "$TAG" --verify-tag --title "$title" --notes-file "$body"
+          fi
