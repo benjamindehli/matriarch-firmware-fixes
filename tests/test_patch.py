@@ -17,6 +17,7 @@ import unittest
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', 'tools'))
 
+import patch_holdcc  # noqa: E402
 from matriarch_syx import Firmware  # noqa: E402
 from patch_mixgate import patch  # noqa: E402
 
@@ -70,6 +71,40 @@ class PatchTests(unittest.TestCase):
         patch(fw, 5)
         with self.assertRaises(ValueError):
             patch(fw, 50)
+        patch_holdcc.patch(fw)
+        with self.assertRaises(ValueError):
+            patch_holdcc.patch(fw)
+
+    def test_hold_patch_matches_expected(self):
+        fw = Firmware(SOURCE)
+        self.assertFalse(patch_holdcc.is_applied(fw))
+        patch_holdcc.patch(fw)
+        self.assertTrue(patch_holdcc.is_applied(fw))
+        self.assertEqual(sha256(bytes(fw.raw)), EXPECTED['hold'])
+
+    def test_hold_patch_changes_only_its_words(self):
+        fw = Firmware(SOURCE)
+        patch_holdcc.patch(fw)
+        _, a = Firmware(SOURCE).image()
+        _, b = fw.image()
+        wa = struct.unpack(f'<{len(a) // 2}H', a)
+        wb = struct.unpack(f'<{len(b) // 2}H', b)
+        changed = {0x88000 + i for i, (x, y) in enumerate(zip(wa, wb)) if x != y}
+        expected = {0x893AC, 0x893AD, 0x8C5BD, 0x8C5BE}
+        expected |= set(range(0xA2000, 0xA200C)) | set(range(0xA2010, 0xA2033))
+        self.assertEqual(changed, expected)
+
+    def test_fixes_combine_in_any_order(self):
+        for ms, expected in EXPECTED['mixgate_hold'].items():
+            with self.subTest(ms=ms):
+                first = Firmware(SOURCE)
+                patch(first, float(ms))
+                patch_holdcc.patch(first)
+                second = Firmware(SOURCE)
+                patch_holdcc.patch(second)
+                patch(second, float(ms))
+                self.assertEqual(sha256(bytes(first.raw)), expected)
+                self.assertEqual(bytes(first.raw), bytes(second.raw))
 
 
 if __name__ == '__main__':

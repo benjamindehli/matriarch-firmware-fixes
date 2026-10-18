@@ -2,7 +2,7 @@
 # Copyright (C) 2026 Benjamin Dehli
 """Read and patch Moog Matriarch firmware .syx files.
 
-Format (reverse engineered from v1.3.0):
+Format (as found in v1.3.0):
   F0 04 17 <payload> F7    -- one SysEx message, Moog (04), Matriarch (17)
   payload = 00-padding + records. A record starts with byte 01, then N triplets.
   triplet = [0x40 | b15..b12] [b11..b6] [b5..b0]  -> one 16-bit word
@@ -56,7 +56,8 @@ class Record:
 
 class Firmware:
     def __init__(self, path):
-        self.raw = bytearray(open(path, 'rb').read())
+        with open(path, 'rb') as f:
+            self.raw = bytearray(f.read())
         if self.raw[:3] != b'\xf0\x04\x17' or self.raw[-1] != 0xF7:
             raise ValueError('not a Matriarch firmware SysEx file')
         self.records = []
@@ -117,4 +118,5 @@ class Firmware:
         return lo, b''.join(struct.pack('<H', mem.get(a, 0xFFFF)) for a in range(lo, hi))
 
     def save(self, path):
-        open(path, 'wb').write(self.raw)
+        with open(path, 'wb') as f:
+            f.write(self.raw)

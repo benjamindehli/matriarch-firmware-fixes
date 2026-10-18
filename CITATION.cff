@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: If you use or refer to this project, please cite it as below.
+type: software
+title: "matriarch-firmware-fixes: Unofficial bug fixes for the Moog Matriarch firmware v1.3.0"
+abstract: "Unofficial bug fixes for the Moog Matriarch synthesizer's firmware v1.3.0, the last release before the Matriarch was discontinued. A browser-based patcher and command-line tools apply the fixes to the user's own copy of Moog's firmware file. Fixes include the paraphonic mixer gate length and HOLD sending sustain while the Arp/Seq is playing. The repository also documents the firmware format and how the fixes work. It contains no Moog firmware and isn't affiliated with Moog Music."
+authors:
+  - given-names: Benjamin
+    family-names: Dehli
+    affiliation: Dehli Musikk
+    website: "https://github.com/benjamindehli"
+repository-code: "https://github.com/benjamindehli/matriarch-firmware-fixes"
+url: "https://benjamindehli.github.io/matriarch-firmware-fixes/"
+license: GPL-3.0-or-later
+version: 1.2.0
+date-released: "2026-10-18"
+keywords:
+  - Moog Matriarch
+  - synthesizer
+  - firmware
+  - bug fixes
+  - TMS320C28x
+  - MIDI
+  - SysEx

@@ -10,7 +10,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { OFFICIAL_V1_3_0_SHA256, mixGateState, patchMixGate } from "../web/fixes.js";
+import { OFFICIAL_V1_3_0_SHA256, holdState, mixGateState, patchHold, patchMixGate } from "../web/fixes.js";
 import { Firmware, FirmwareError } from "../web/matriarch-syx.js";
 
 const expected = JSON.parse(readFileSync(new URL("./expected.json", import.meta.url)));
@@ -57,4 +57,26 @@ test("rejects files that aren't Matriarch firmware", () => {
 
 test("web patcher knows the official v1.3.0 checksum", () => {
     assert.equal(OFFICIAL_V1_3_0_SHA256, expected.source.sha256);
+});
+
+test("HOLD patch matches the expected build", { skip }, () => {
+    const fw = new Firmware(readFileSync(source));
+    assert.deepEqual(holdState(fw), { state: "unpatched" });
+    patchHold(fw);
+    assert.equal(sha256(fw.bytes()), expected.hold);
+    assert.deepEqual(holdState(new Firmware(fw.bytes())), { state: "patched" });
+    assert.throws(() => patchHold(fw), FirmwareError);
+});
+
+test("fixes combine in any order", { skip }, () => {
+    for (const [ms, hash] of Object.entries(expected.mixgate_hold)) {
+        const first = new Firmware(readFileSync(source));
+        patchMixGate(first, Number(ms));
+        patchHold(first);
+        const second = new Firmware(readFileSync(source));
+        patchHold(second);
+        patchMixGate(second, Number(ms));
+        assert.equal(sha256(first.bytes()), hash, `${ms} ms`);
+        assert.deepEqual(Buffer.from(first.bytes()), Buffer.from(second.bytes()));
+    }
 });
