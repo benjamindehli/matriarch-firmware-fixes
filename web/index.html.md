@@ -4,7 +4,7 @@ Last changed: 2026-10-18
 
 # Matriarch Firmware Patcher
 
-Apply unofficial bug fixes to your own copy of the Moog Matriarch firmware v1.3.0. The first fix makes released notes stop when you let go in paraphonic mode, so staccato playing works again. Everything happens in your browser. Your file is never uploaded.
+Apply unofficial bug fixes to your own copy of the Moog Matriarch firmware v1.3.0: released notes stop when you let go in paraphonic mode, and HOLD no longer sends sustain to connected gear while an arpeggio is latched. Everything happens in your browser. Your file is never uploaded.
 
 - [Source on GitHub](https://github.com/benjamindehli/matriarch-firmware-fixes)
 - [Star the repo](https://github.com/login?return_to=%2Fbenjamindehli%2Fmatriarch-firmware-fixes)
@@ -17,7 +17,9 @@ Apply unofficial bug fixes to your own copy of the Moog Matriarch firmware v1.3.
 The patcher itself is interactive and needs a browser with JavaScript: https://benjamindehli.github.io/matriarch-firmware-fixes/
 
 1. Choose Moog's firmware file, `Matriarch_Firmware_v1_3_0.syx`, from Moog's v1.3.0 download or the Moog Firmware Updater. The page checks that it's Matriarch firmware v1.3.0 and compares it with the SHA-256 of Moog's official file.
-2. Choose the paraphonic mixer gate length: 5 ms (recommended), 50 ms (the same behaviour as firmware v1.1.0), or a whole number from 0 to 125.
+2. Choose the fixes. Both are selected by default, and you can apply either one on its own:
+   - Paraphonic mixer gate length: 5 ms (recommended), 50 ms (the same behaviour as firmware v1.1.0), or a whole number from 0 to 125.
+   - HOLD sends sustain while the Arp/Seq is playing: with the fix, HOLD sends sustain (MIDI CC 64) only while the Arp/Seq is stopped.
 3. Download the patched file and flash it with a SysEx tool (SysEx Librarian on macOS, Bome SendSX on Windows) using Moog's normal procedure:
    1. Send `Matriarch_FIRMWARE_INVALIDATE.syx`.
    2. Re-select the Matriarch as the MIDI output (it reboots).
@@ -45,14 +47,29 @@ Moog lists this as a known issue in the v1.3.0 release notes: _"Paraphonic Mixer
 | v1.3.0          | 125 ms                        |
 | v1.3.0, patched | 5 ms, 50 ms or your own value |
 
-The patch changes the one value that sets the hold. When you release the last key, the VCA envelope's release shapes the tail exactly as before, and Multi Trig and its envelope retrigger timing are untouched. The [technical details](https://github.com/benjamindehli/matriarch-firmware-fixes#how-the-fix-works) are in the repository.
+The patch changes the one value that sets the hold. When you release the last key, the VCA envelope's release shapes the tail exactly as before, and Multi Trig and its envelope retrigger timing are untouched. The [technical details](https://github.com/benjamindehli/matriarch-firmware-fixes#how-the-fixes-work) are in the repository.
+
+### HOLD sends sustain while the Arp/Seq is playing
+
+Since the v1.2 updates, the HOLD button does two jobs. While the Arp/Seq is running it latches the pattern, and while the Arp/Seq is stopped it works as a sustain pedal and sends MIDI CC 64 to connected gear. Firmware v1.3.0 sends the sustain in both cases, so latching an arpeggio also makes connected synths sustain every note. Moog lists this as a known issue: _"ARP sends Sustain CC while Hold is active - HOLD should send sustain CC when Arp/Seq is inactive."_
+
+With the fix, connected gear sustains exactly when HOLD is on and the Arp/Seq isn't running:
+
+| You do this                        | v1.3.0 sends                      | Patched sends                                 |
+| ---------------------------------- | --------------------------------- | --------------------------------------------- |
+| HOLD on, Arp/Seq stopped           | Sustain on                        | Sustain on                                    |
+| HOLD on while the Arp/Seq plays    | Sustain on                        | Nothing, and the pattern latches as before    |
+| Start the Arp/Seq while HOLD is on | Nothing, so notes keep sustaining | Sustain off, unless the sustain pedal is down |
+| Stop the Arp/Seq while HOLD is on  | Nothing                           | Sustain on                                    |
+| HOLD off                           | Sustain off                       | Sustain off                                   |
+
+The Matriarch's own sound, the sustain pedal and incoming MIDI sustain work exactly as before. The fix has been tested on a Matriarch driving a Yamaha DX7 over MIDI. Without the patch, there's a workaround: after latching with HOLD, press and release the sustain pedal. That sends sustain off to connected gear while the pattern stays latched.
 
 ### Other known issues in v1.3.0
 
 These are on Moog's list but not fixed here yet:
 
 - Send Program Change seems to have no effect.
-- The arpeggiator sends Sustain CC while Hold is active.
 - After Load Default Settings, global mode acts as if A#3 is held down until a power cycle.
 - Sequence Random Repeat and Sequence Keyed Restart seem to have no effect.
 - Keyed Timing Reset doesn't work while Hold is active.
@@ -65,6 +82,10 @@ If one of these affects you, say so in the [issue tracker](https://github.com/be
 ### Why can't I play staccato in paraphonic mode on the Moog Matriarch?
 
 In firmware v1.2.3 and v1.3.0, when you release a key in 2- or 4-note paraphonic mode while other keys are still held, the Matriarch keeps that oscillator's mixer gate open for another 125 ms. Short notes and fast overlapping notes smear together. Moog lists it as the known issue "Paraphonic Mixer Gate Length" in the v1.3.0 release notes. This patcher shortens the hold to 5 ms or any value you choose.
+
+### Why do my other synths sustain when I latch the arpeggiator with HOLD?
+
+Since the v1.2 updates, the HOLD button also works as a sustain pedal when the Arp/Seq isn't running, and sends MIDI CC 64 to connected gear. Firmware v1.3.0 sends it even while the Arp/Seq is running, so latching an arpeggio also sustains notes on connected synths. Moog lists it as a known issue. The HOLD fix sends sustain only while the Arp/Seq is stopped. Without the patch, pressing and releasing a sustain pedal after engaging HOLD clears the sustain on connected gear.
 
 ### Is my firmware file uploaded anywhere?
 
@@ -80,7 +101,7 @@ From Moog's v1.3.0 firmware download, or through the Moog Firmware Updater. The 
 
 ### Is it safe to flash patched firmware on the Matriarch?
 
-The patch changes one number in one instruction and leaves the rest of the firmware byte-identical to Moog's file. The update never touches the bootloader, and both the 5 ms and 50 ms builds have been flashed and tested on a Matriarch. It's still unofficial, so you use it at your own risk.
+The mixer gate fix changes one number, and the HOLD fix adds a few instructions in unused flash. The rest of the firmware stays byte-identical to Moog's file, and the Matriarch computes its own firmware checksum after an update. The update never touches the bootloader, and the fixes have been flashed and tested on a Matriarch. It's still unofficial, so you use it at your own risk.
 
 ### How do I go back to Moog's original firmware?
 

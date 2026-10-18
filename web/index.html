@@ -92,11 +92,11 @@
                         "@id": "https://benjamindehli.github.io/matriarch-firmware-fixes/#app",
                         "name": "Matriarch Firmware Patcher",
                         "url": "https://benjamindehli.github.io/matriarch-firmware-fixes/",
-                        "description": "Applies unofficial bug fixes to the Moog Matriarch firmware v1.3.0 in the browser. The first fix shortens the 125 ms paraphonic mixer gate hold so staccato playing works in paraphonic mode.",
+                        "description": "Applies unofficial bug fixes to the Moog Matriarch firmware v1.3.0 in the browser. It shortens the 125 ms paraphonic mixer gate hold so staccato playing works in paraphonic mode, and stops HOLD from sending sustain to connected gear while the Arp/Seq is playing.",
                         "applicationCategory": "UtilitiesApplication",
                         "operatingSystem": "Any",
                         "browserRequirements": "Requires JavaScript",
-                        "softwareVersion": "1.1.0",
+                        "softwareVersion": "1.2.0",
                         "isAccessibleForFree": true,
                         "offers": { "@type": "Offer", "price": 0, "priceCurrency": "USD" },
                         "license": "https://www.gnu.org/licenses/gpl-3.0.html",
@@ -110,6 +110,7 @@
                         },
                         "featureList": [
                             "Fixes the paraphonic mixer gate length from Moog's v1.3.0 known-issues list",
+                            "Fixes HOLD sending sustain (MIDI CC 64) while the Arp/Seq is playing, also from Moog's list",
                             "Runs entirely in the browser, the firmware file is never uploaded",
                             "Verifies the file against Moog's official v1.3.0 checksum",
                             "Output is byte-identical to builds tested on hardware"
@@ -143,6 +144,14 @@
                             },
                             {
                                 "@type": "Question",
+                                "name": "Why do my other synths sustain when I latch the arpeggiator with HOLD?",
+                                "acceptedAnswer": {
+                                    "@type": "Answer",
+                                    "text": "Since the v1.2 updates, the HOLD button also works as a sustain pedal when the Arp/Seq isn't running, and sends MIDI CC 64 to connected gear. Firmware v1.3.0 sends it even while the Arp/Seq is running, so latching an arpeggio also sustains notes on connected synths. Moog lists it as a known issue. The HOLD fix sends sustain only while the Arp/Seq is stopped. Without the patch, pressing and releasing a sustain pedal after engaging HOLD clears the sustain on connected gear."
+                                }
+                            },
+                            {
+                                "@type": "Question",
                                 "name": "Is my firmware file uploaded anywhere?",
                                 "acceptedAnswer": {
                                     "@type": "Answer",
@@ -170,7 +179,7 @@
                                 "name": "Is it safe to flash patched firmware on the Matriarch?",
                                 "acceptedAnswer": {
                                     "@type": "Answer",
-                                    "text": "The patch changes one number in one instruction and leaves the rest of the firmware byte-identical to Moog's file. The update never touches the bootloader, and both the 5 ms and 50 ms builds have been flashed and tested on a Matriarch. It's still unofficial, so you use it at your own risk."
+                                    "text": "The mixer gate fix changes one number, and the HOLD fix adds a few instructions in unused flash. The rest of the firmware stays byte-identical to Moog's file, and the Matriarch computes its own firmware checksum after an update. The update never touches the bootloader, and the fixes have been flashed and tested on a Matriarch. It's still unofficial, so you use it at your own risk."
                                 }
                             },
                             {
@@ -222,9 +231,9 @@
             <main id="main" tabindex="-1">
                 <h1>Matriarch Firmware Patcher</h1>
                 <p class="lead">
-                    Apply unofficial bug fixes to your own copy of the Moog Matriarch firmware v1.3.0. The first fix
-                    makes released notes stop when you let go in paraphonic mode, so staccato playing works again.
-                    Everything happens in your browser. Your file is never uploaded.
+                    Apply unofficial bug fixes to your own copy of the Moog Matriarch firmware v1.3.0: released notes
+                    stop when you let go in paraphonic mode, and HOLD no longer sends sustain to connected gear while an
+                    arpeggio is latched. Everything happens in your browser. Your file is never uploaded.
                 </p>
 
                 <ul class="links">
@@ -282,9 +291,14 @@
                     </section>
 
                     <section class="card" id="options" aria-labelledby="step2" aria-disabled="true">
-                        <h2 id="step2"><span class="step" aria-hidden="true">2</span>Choose the fix</h2>
+                        <h2 id="step2"><span class="step" aria-hidden="true">2</span>Choose the fixes</h2>
                         <fieldset id="mixgate" disabled>
-                            <legend>Paraphonic mixer gate length</legend>
+                            <legend>
+                                <label class="toggle"
+                                    ><input type="checkbox" id="use-mixgate" checked /> Paraphonic mixer gate
+                                    length</label
+                                >
+                            </legend>
                             <p class="hint">
                                 In paraphonic mode, a released key keeps sounding for 125 ms while other keys are held.
                                 Choose how long it should keep sounding instead.
@@ -313,6 +327,19 @@
                                     ms<small>Any whole number from 0 to 125.</small></span
                                 >
                             </label>
+                        </fieldset>
+                        <fieldset id="hold" disabled>
+                            <legend>
+                                <label class="toggle"
+                                    ><input type="checkbox" id="use-hold" checked /> HOLD sends sustain while the
+                                    Arp/Seq is playing</label
+                                >
+                            </legend>
+                            <p class="hint">
+                                Latching an arpeggio or sequence with HOLD also sends sustain (MIDI CC 64), so connected
+                                synths keep their notes ringing. With this fix, HOLD sends sustain only while the
+                                Arp/Seq is stopped. The Matriarch's own sound is unchanged.
+                            </p>
                         </fieldset>
                     </section>
 
@@ -404,17 +431,72 @@
                         The patch changes the one value that sets the hold. When you release the last key, the VCA
                         envelope's release shapes the tail exactly as before, and Multi Trig and its envelope retrigger
                         timing are untouched. The
-                        <a href="https://github.com/benjamindehli/matriarch-firmware-fixes#how-the-fix-works"
+                        <a href="https://github.com/benjamindehli/matriarch-firmware-fixes#how-the-fixes-work"
                             >technical details</a
                         >
                         are in the repository.
+                    </p>
+                    <h3>HOLD sends sustain while the Arp/Seq is playing</h3>
+                    <p>
+                        Since the v1.2 updates, the HOLD button does two jobs. While the Arp/Seq is running it latches
+                        the pattern, and while the Arp/Seq is stopped it works as a sustain pedal and sends MIDI CC 64
+                        to connected gear. Firmware v1.3.0 sends the sustain in both cases, so latching an arpeggio also
+                        makes connected synths sustain every note. Moog lists this as a known issue:
+                        <em
+                            >"ARP sends Sustain CC while Hold is active - HOLD should send sustain CC when Arp/Seq is
+                            inactive."</em
+                        >
+                    </p>
+                    <p>With the fix, connected gear sustains exactly when HOLD is on and the Arp/Seq isn't running:</p>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">You do this</th>
+                                    <th scope="col">v1.3.0 sends</th>
+                                    <th scope="col">Patched sends</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>HOLD on, Arp/Seq stopped</td>
+                                    <td>Sustain on</td>
+                                    <td>Sustain on</td>
+                                </tr>
+                                <tr>
+                                    <td>HOLD on while the Arp/Seq plays</td>
+                                    <td>Sustain on</td>
+                                    <td>Nothing, and the pattern latches as before</td>
+                                </tr>
+                                <tr>
+                                    <td>Start the Arp/Seq while HOLD is on</td>
+                                    <td>Nothing, so notes keep sustaining</td>
+                                    <td>Sustain off, unless the sustain pedal is down</td>
+                                </tr>
+                                <tr>
+                                    <td>Stop the Arp/Seq while HOLD is on</td>
+                                    <td>Nothing</td>
+                                    <td>Sustain on</td>
+                                </tr>
+                                <tr>
+                                    <td>HOLD off</td>
+                                    <td>Sustain off</td>
+                                    <td>Sustain off</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>
+                        The Matriarch's own sound, the sustain pedal and incoming MIDI sustain work exactly as before.
+                        The fix has been tested on a Matriarch driving a Yamaha DX7 over MIDI. Without the patch,
+                        there's a workaround: after latching with HOLD, press and release the sustain pedal. That sends
+                        sustain off to connected gear while the pattern stays latched.
                     </p>
 
                     <h3>Other known issues in v1.3.0</h3>
                     <p>These are on Moog's list but not fixed here yet:</p>
                     <ul>
                         <li>Send Program Change seems to have no effect.</li>
-                        <li>The arpeggiator sends Sustain CC while Hold is active.</li>
                         <li>
                             After Load Default Settings, global mode acts as if A#3 is held down until a power cycle.
                         </li>
@@ -438,6 +520,17 @@
                             125 ms. Short notes and fast overlapping notes smear together. Moog lists it as the known
                             issue "Paraphonic Mixer Gate Length" in the v1.3.0 release notes. This patcher shortens the
                             hold to 5 ms or any value you choose.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Why do my other synths sustain when I latch the arpeggiator with HOLD?</summary>
+                        <p>
+                            Since the v1.2 updates, the HOLD button also works as a sustain pedal when the Arp/Seq isn't
+                            running, and sends MIDI CC 64 to connected gear. Firmware v1.3.0 sends it even while the
+                            Arp/Seq is running, so latching an arpeggio also sustains notes on connected synths. Moog
+                            lists it as a known issue. The HOLD fix sends sustain only while the Arp/Seq is stopped.
+                            Without the patch, pressing and releasing a sustain pedal after engaging HOLD clears the
+                            sustain on connected gear.
                         </p>
                     </details>
                     <details>
@@ -465,10 +558,11 @@
                     <details>
                         <summary>Is it safe to flash patched firmware on the Matriarch?</summary>
                         <p>
-                            The patch changes one number in one instruction and leaves the rest of the firmware
-                            byte-identical to Moog's file. The update never touches the bootloader, and both the 5 ms
-                            and 50 ms builds have been flashed and tested on a Matriarch. It's still unofficial, so you
-                            use it at your own risk.
+                            The mixer gate fix changes one number, and the HOLD fix adds a few instructions in unused
+                            flash. The rest of the firmware stays byte-identical to Moog's file, and the Matriarch
+                            computes its own firmware checksum after an update. The update never touches the bootloader,
+                            and the fixes have been flashed and tested on a Matriarch. It's still unofficial, so you use
+                            it at your own risk.
                         </p>
                     </details>
                     <details>
@@ -531,13 +625,15 @@
 
         <script type="module">
             import { Firmware, FirmwareError } from "./matriarch-syx.js";
-            import { OFFICIAL_V1_3_0_SHA256, mixGateState, patchMixGate } from "./fixes.js";
+            import { OFFICIAL_V1_3_0_SHA256, holdState, mixGateState, patchHold, patchMixGate } from "./fixes.js";
 
             const $ = (id) => document.getElementById(id);
             const fileInput = $("file");
             const drop = $("drop");
             const status = $("status");
-            const fieldset = $("mixgate");
+            const fieldsets = [$("mixgate"), $("hold")];
+            const useMixgate = $("use-mixgate");
+            const useHold = $("use-hold");
             const customMs = $("custom-ms");
             const download = $("download");
             const downloadName = $("download-name");
@@ -558,7 +654,7 @@
             }
 
             function enable(ready) {
-                fieldset.disabled = !ready;
+                for (const f of fieldsets) f.disabled = !ready;
                 $("options").setAttribute("aria-disabled", String(!ready));
                 $("download-step").setAttribute("aria-disabled", String(!ready));
                 if (!ready) {
@@ -581,17 +677,27 @@
                 const id = loading;
                 if (url) URL.revokeObjectURL(url);
                 url = null;
-                const ms = selectedMs();
-                if (ms === null) {
+                const mix = useMixgate.checked;
+                const hold = useHold.checked;
+                for (const input of document.querySelectorAll('input[name="ms"], #custom-ms')) input.disabled = !mix;
+                const ms = mix ? selectedMs() : null;
+                const problem =
+                    !mix && !hold
+                        ? "Choose at least one fix."
+                        : mix && ms === null
+                          ? "Enter a custom delay from 0 to 125 ms."
+                          : null;
+                if (problem) {
                     download.setAttribute("aria-disabled", "true");
                     download.removeAttribute("href");
-                    downloadName.textContent = "Enter a custom delay from 0 to 125 ms.";
+                    downloadName.textContent = problem;
                     return;
                 }
                 const fw = new Firmware(source);
-                patchMixGate(fw, ms);
+                if (mix) patchMixGate(fw, ms);
+                if (hold) patchHold(fw);
                 const bytes = fw.bytes();
-                const name = `Matriarch_Firmware_v1_3_0_mixgate${ms}ms.syx`;
+                const name = `Matriarch_Firmware_v1_3_0${mix ? `_mixgate${ms}ms` : ""}${hold ? "_hold" : ""}.syx`;
                 url = URL.createObjectURL(new Blob([bytes], { type: "application/octet-stream" }));
                 download.href = url;
                 download.download = name;
@@ -614,12 +720,17 @@
                     if (id !== loading) return;
                     const fw = new Firmware(bytes);
                     const gate = mixGateState(fw);
-                    if (gate.state === "patched") {
+                    const holdFix = holdState(fw);
+                    if (gate.state === "patched" || holdFix.state === "patched") {
+                        const applied = [
+                            gate.state === "patched" && `mixer gate ${gate.ms} ms`,
+                            holdFix.state === "patched" && "HOLD",
+                        ].filter(Boolean);
                         setStatus(
                             "warn",
-                            `This file is already patched (${gate.ms} ms). Start from Moog's original v1.3.0 file.`,
+                            `This file is already patched (${applied.join(", ")}). Start from Moog's original v1.3.0 file.`,
                         );
-                    } else if (gate.state === "unsupported") {
+                    } else if (gate.state === "unsupported" || holdFix.state === "unsupported") {
                         setStatus(
                             "warn",
                             `This is Matriarch firmware v${fw.version}. The patcher only supports v1.3.0.`,
@@ -649,7 +760,7 @@
             }
 
             fileInput.addEventListener("change", () => load(fileInput.files[0]));
-            fieldset.addEventListener("change", update);
+            $("options").addEventListener("change", update);
             customMs.addEventListener("input", () => {
                 document.querySelector('input[name="ms"][value="custom"]').checked = true;
                 update();

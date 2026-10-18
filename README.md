@@ -6,9 +6,10 @@ Unofficial bug fixes for the Moog Matriarch firmware v1.3.0, the last release be
 
 ## Fixes
 
-| Fix                          | Web patcher | Script                   | Status                              |
-| ---------------------------- | ----------- | ------------------------ | ----------------------------------- |
-| Paraphonic Mixer Gate Length | Yes         | `tools/patch_mixgate.py` | Tested on hardware (5 ms and 50 ms) |
+| Fix                                             | Web patcher | Script                   | Status                                            |
+| ----------------------------------------------- | ----------- | ------------------------ | ------------------------------------------------- |
+| Paraphonic Mixer Gate Length                    | Yes         | `tools/patch_mixgate.py` | Tested on hardware (5 ms and 50 ms)               |
+| HOLD sends sustain while the Arp/Seq is playing | Yes         | `tools/patch_holdcc.py`  | Tested on hardware, with a Yamaha DX7 on MIDI out |
 
 ### Paraphonic Mixer Gate Length
 
@@ -25,13 +26,29 @@ When the _last_ key is released, the VCA envelope's release shapes the tail exac
 
 _The same MIDI part recorded on a Matriarch with the original firmware (125 ms), then with each patch (50 ms and 5 ms): a held note with short notes on top. The highlighted note ends at the same point in all three. With 125 ms it keeps sounding well past the end, with 50 ms the tail is shorter, and with 5 ms it stops where the note ends._
 
+### HOLD sends sustain while the Arp/Seq is playing
+
+Moog's v1.3.0 known-issues list says: _"ARP sends Sustain CC while Hold is active - HOLD should send sustain CC when Arp/Seq is inactive."_
+
+Since the v1.2 updates, HOLD latches the Arp/Seq when it's running and works as a sustain pedal when it isn't, sending MIDI CC 64. Firmware v1.3.0 sends CC 64 in both cases, so latching an arpeggio also sustains every note on connected gear. With the fix, connected gear sustains exactly when HOLD is on and the Arp/Seq isn't running:
+
+| You do this                        | v1.3.0 sends                      | Patched sends                                 |
+| ---------------------------------- | --------------------------------- | --------------------------------------------- |
+| HOLD on, Arp/Seq stopped           | Sustain on                        | Sustain on                                    |
+| HOLD on while the Arp/Seq plays    | Sustain on                        | Nothing, and the pattern latches as before    |
+| Start the Arp/Seq while HOLD is on | Nothing, so notes keep sustaining | Sustain off, unless the sustain pedal is down |
+| Stop the Arp/Seq while HOLD is on  | Nothing                           | Sustain on                                    |
+| HOLD off                           | Sustain off                       | Sustain off                                   |
+
+The Matriarch's own sound, the sustain pedal and incoming MIDI sustain work exactly as before. Without the patch there's a workaround: after latching with HOLD, press and release the sustain pedal. That sends sustain off while the pattern stays latched.
+
 ## How to patch and flash
 
 You need Moog's official **v1.3.0** firmware (`Matriarch_Firmware_v1_3_0.syx`), which comes with the Moog Firmware Updater or Moog's v1.3.0 download.
 
 ### In your browser (easiest)
 
-Open the **[Matriarch Firmware Patcher](https://benjamindehli.github.io/matriarch-firmware-fixes/)**, choose your firmware file, pick the fix, and download the patched file. Everything runs locally in your browser. Your file is never uploaded. The page then shows how to flash the patched file.
+Open the **[Matriarch Firmware Patcher](https://benjamindehli.github.io/matriarch-firmware-fixes/)**, choose your firmware file, pick the fixes, and download the patched file. Everything runs locally in your browser. Your file is never uploaded. The page then shows how to flash the patched file.
 
 ### On the command line
 
@@ -39,9 +56,9 @@ You need Python 3.
 
 1. Create the patched file:
    ```sh
-   python3 tools/patch_mixgate.py Matriarch_Firmware_v1_3_0.syx Matriarch_Firmware_v1_3_0_mixgate5ms.syx --ms 5
+   python3 tools/patch.py Matriarch_Firmware_v1_3_0.syx Matriarch_Firmware_v1_3_0_patched.syx --mixgate 5 --hold
    ```
-   The script refuses to patch anything that isn't v1.3.0.
+   Leave out `--mixgate` or `--hold` to apply only one of the fixes. The script refuses to patch anything that isn't unpatched v1.3.0.
 2. Flash it with a SysEx tool (SysEx Librarian on macOS, Bome SendSX on Windows), following Moog's normal procedure:
    1. Send `Matriarch_FIRMWARE_INVALIDATE.syx`.
    2. Re-select the Matriarch as the MIDI output (it reboots).
@@ -51,7 +68,9 @@ You need Python 3.
 
 Use a direct USB cable (no hub) and don't touch the synth during the transfer. If a transfer fails, power-cycle, reconnect, and start again from INVALIDATE. The updates never touch the bootloader.
 
-## How the fix works
+## How the fixes work
+
+### Paraphonic mixer gate length
 
 Note-off (`0x88de4`) doesn't close a released voice's mixer gate immediately when other keys are held. It marks the voice as release-pending with a timestamp, and the main loop (`0x8a56b`, at `0x8a81d`) closes the gate once `now - timestamp > engine.mixGateDelay`. The engine init (`0x8b3f0`) sets that delay:
 
@@ -73,23 +92,42 @@ History, from comparing v1.1.0, v1.2.3 and v1.3.0:
 
 The 125 ms change isn't in any release notes. Moog support has said the hold is intentional, "to avoid completely missing quickly played notes". The Multi Trig retrigger window (the stuck-envelope fixes in v1.2.x) is separate code with its own constant and isn't affected by this patch.
 
+### HOLD and sustain
+
+The HOLD button handler (`0x8c5a5`) sets the HOLD parameter, then calls the shared sustain routine `0x8c56b(on, send)`. That routine sets the keyboard sustain state and, when `send` is set, sends CC 64 through the MIDI output (`0x97037`). The handler sets `send` from the global "MIDI Out Filter - Keys" without looking at the Arp/Seq:
+
+```
+0008c5b8  9224        MOV  AL,@0x24          ; 0xc8a4 = "MIDI Out Filter - Keys"
+0008c5ba  56b0 01a8   MOVB @AH,#0x1,NEQ      ; AH = send CC 64
+0008c5bc  92a6        MOV  AL,@AR6           ; AL = new HOLD state
+0008c5bd  7648 c56b   LCR  0x0008c56b        ; <- redirected to 0xa2000
+```
+
+The patch adds two short routines in empty flash at `0xa2000`, after the last data in sector H (`0xa1c3f`). The first clears `send` when HOLD is switched on while the Arp/Seq is playing (`0xe4c0 + 0x3f`), then jumps into Moog's routine. The second wraps the Arp/Seq start/stop routine `0x90b88`, which only the PLAY parameter's handler calls, and resyncs CC 64 when the Arp/Seq starts or stops while HOLD is on. The full disassembly is in `tools/patch_holdcc.py`.
+
+Two details matter. The Arp/Seq latch (`0xe4c0 + 0xa5`) can't be used, because the HOLD parameter's handler that sets it runs later from an event queue. And the new code is covered by the firmware checksum without any extra work, because the Matriarch computes that checksum itself after an update.
+
 ## Firmware format and hardware notes
 
 - The firmware is a single SysEx message `F0 04 17 ... F7`. Each 16-bit word is packed into 3 bytes (`0x40|b15..12`, `b11..6`, `b5..0`).
-- Data records are `0013 0088 0080 0000 addrLo addrHi cksum <128 words> 0000`, where cksum is the 16-bit sum of the other words. The header record (`0012 ...`) holds the version and its own checksum at word 14. There's no whole-image CRC.
+- Data records are `0013 0088 0080 0000 addrLo addrHi cksum <128 words> 0000`, where cksum is the 16-bit sum of the other words. The header record (`0012 ...`) holds the version and its own checksum at word 14. The file has no whole-image checksum. After an update, the Matriarch computes a 32-bit sum of the application area itself (`0x99f30`) and stores it at `0xBFFFC`.
 - The CPU is a TI TMS320F2837x (C28x + FPU), which is word-addressed. The application lives at `0x88000` to `0xBFFFF`, and the bootloader sits below it and isn't part of updates.
 - Global settings sit at `0xC899 + n` for SysEx global parameter `n` (v1.3.0). For example, paraphony mode is at `0xC8D0`.
 - Front-panel LEDs and other digital outputs go through a shift-register shadow at `0x1374A`, flushed over SPI.
+- Panel parameters are described in a table at `0x9F380` (10 words each: ID, type, RAM address, handler). Setting one stores the value at once and posts its handler to an event queue at `0xF400`, so the handler runs after the code that set it.
+- The flash erase and program routines only run during a firmware update, which erases sectors E to N. Nothing at runtime erases the application's sectors.
 
 ## Tools
 
 | File                     | Purpose                                                                                                                                                                                                                                             |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `tools/matriarch_syx.py` | Parses `.syx` files, verifies checksums and patches words in place                                                                                                                                                                                  |
+| `tools/patch.py`         | Applies one or more fixes (`--mixgate MS`, `--hold`)                                                                                                                                                                                                |
 | `tools/patch_mixgate.py` | The mixer gate fix                                                                                                                                                                                                                                  |
+| `tools/patch_holdcc.py`  | The HOLD sustain fix, with its disassembly                                                                                                                                                                                                          |
 | `tools/syx2bin.py`       | Extracts a flat image to load at word address `0x88000`                                                                                                                                                                                             |
 | `tools/periph_map.py`    | Shows which functions touch which peripherals (from `refs.tsv`)                                                                                                                                                                                     |
-| `tools/ghidra_scripts/`  | `ExportDecomp.java` (decompiled C + references) and `DumpListing.java` (listings)                                                                                                                                                                   |
+| `tools/ghidra_scripts/`  | `ExportDecomp.java` (decompiled C + references), `DumpListing.java` (listings) and `AssemblePatch.java` (assembles C28x instructions with the processor module's assembler)                                                                         |
 | `tools/listing.sh`       | Dumps a listing from a local Ghidra project in `work/ghidra`                                                                                                                                                                                        |
 | `web/`                   | The website with the web patcher (`index.html`, `style.css`, and `matriarch-syx.js` and `fixes.js`, JavaScript ports of the Python tools), plus `404.html`, `robots.txt`, `sitemap.xml`, `llms.txt`, the Markdown mirror `index.html.md` and images |
 | `tests/`                 | Tests for both patchers against Moog's official v1.3.0 file, with expected hashes in `expected.json`                                                                                                                                                |
