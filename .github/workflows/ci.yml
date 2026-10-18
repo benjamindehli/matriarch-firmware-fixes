@@ -18,16 +18,16 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install ruff==0.16.10
       - run: ruff check .
       - run: ruff format --check .
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
       - run: npm ci
       - run: npx prettier --check .
@@ -35,7 +35,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Download Moog's official firmware v1.3.0 (for testing only)
         run: |
           url=$(jq -r .source.zip_url tests/expected.json)
@@ -45,14 +45,14 @@ jobs:
           curl -fsSL --retry 3 "$url" -o "$dir/firmware.zip"
           unzip -q -j "$dir/firmware.zip" "$member" -d "$dir"
           echo "MATRIARCH_FIRMWARE=$dir/$(basename "$member")" >> "$GITHUB_ENV"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Test Python tools
         run: python -m unittest discover -s tests -v
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
       - name: Test web patcher
         run: npm test
 
@@ -70,10 +70,10 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/checkout@v7
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: web
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
