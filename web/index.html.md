@@ -18,8 +18,8 @@ The patcher itself is interactive and needs a browser with JavaScript: https://b
 
 1. Choose Moog's firmware file, `Matriarch_Firmware_v1_3_0.syx`, from Moog's v1.3.0 download or the Moog Firmware Updater. The page checks that it's Matriarch firmware v1.3.0 and compares it with the SHA-256 of Moog's official file.
 2. Choose the fixes. Both are selected by default, and you can apply either one on its own:
-   - Paraphonic mixer gate length: 5 ms (recommended), 50 ms (the same behaviour as firmware v1.1.0), or a whole number from 0 to 125.
-   - HOLD sends sustain while the Arp/Seq is playing: with the fix, HOLD sends sustain (MIDI CC 64) only while the Arp/Seq is stopped.
+   - Fix the paraphonic mixer gate length: 5 ms (recommended), 50 ms (the same behaviour as firmware v1.1.0), or a whole number from 0 to 125.
+   - Fix HOLD sending sustain while the Arp/Seq is playing: with the fix, HOLD sends sustain (MIDI CC 64) only while the Arp/Seq is stopped.
 3. Download the patched file and flash it with a SysEx tool (SysEx Librarian on macOS, Bome SendSX on Windows) using Moog's normal procedure:
    1. Send `Matriarch_FIRMWARE_INVALIDATE.syx`.
    2. Re-select the Matriarch as the MIDI output (it reboots).
