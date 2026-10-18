@@ -10,7 +10,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { mixGateState, patchMixGate } from "../web/fixes.js";
+import { OFFICIAL_V1_3_0_SHA256, mixGateState, patchMixGate } from "../web/fixes.js";
 import { Firmware, FirmwareError } from "../web/matriarch-syx.js";
 
 const expected = JSON.parse(readFileSync(new URL("./expected.json", import.meta.url)));
@@ -53,4 +53,8 @@ test("refuses to patch twice", { skip }, () => {
 test("rejects files that aren't Matriarch firmware", () => {
     assert.throws(() => new Firmware(new Uint8Array([1, 2, 3])), FirmwareError);
     assert.throws(() => new Firmware(Uint8Array.from([0xf0, 0x43, 0x10, 0, 0, 0, 0, 0xf7])), FirmwareError);
+});
+
+test("web patcher knows the official v1.3.0 checksum", () => {
+    assert.equal(OFFICIAL_V1_3_0_SHA256, expected.source.sha256);
 });
