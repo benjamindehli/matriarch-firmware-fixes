@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Matriarch Firmware Patcher</title>
+        <link
+            rel="icon"
+            href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23b4531f'/%3E%3Cpath d='M16 4v11' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"
+        />
+        <meta
+            name="description"
+            content="Apply unofficial bug fixes to your own copy of the Moog Matriarch firmware v1.3.0, right in your browser."
+        />
+        <style>
+            :root {
+                color-scheme: light dark;
+                --bg: #f6f3ee;
+                --surface: #ffffff;
+                --text: #1d1b19;
+                --muted: #5f5953;
+                --border: #ddd6cc;
+                --accent: #b4531f;
+                --accent-text: #ffffff;
+                --ok: #1f7a46;
+                --warn: #8a5a00;
+                --error: #b3261e;
+                --focus: #1a5fb4;
+            }
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --bg: #171513;
+                    --surface: #221f1c;
+                    --text: #eee9e2;
+                    --muted: #aaa39a;
+                    --border: #3b3631;
+                    --accent: #e0793f;
+                    --accent-text: #1d1b19;
+                    --ok: #5cc98a;
+                    --warn: #e8b34a;
+                    --error: #f2827a;
+                    --focus: #8ab4f8;
+                }
+            }
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--text);
+                font:
+                    16px/1.55 system-ui,
+                    -apple-system,
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
+            }
+            main {
+                max-width: 42rem;
+                margin: 0 auto;
+                padding: 2.5rem 1.25rem 3rem;
+            }
+            h1 {
+                font-size: 1.9rem;
+                line-height: 1.2;
+                margin: 0 0 0.5rem;
+            }
+            h2 {
+                font-size: 1.1rem;
+                margin: 0 0 0.75rem;
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+            }
+            .step {
+                display: inline-grid;
+                place-items: center;
+                width: 1.7rem;
+                height: 1.7rem;
+                border-radius: 50%;
+                background: var(--accent);
+                color: var(--accent-text);
+                font-size: 0.9rem;
+            }
+            p {
+                margin: 0 0 0.75rem;
+            }
+            .lead {
+                color: var(--muted);
+                font-size: 1.05rem;
+            }
+            a {
+                color: var(--accent);
+            }
+            :focus-visible {
+                outline: 3px solid var(--focus);
+                outline-offset: 2px;
+            }
+            .notice {
+                border-left: 4px solid var(--accent);
+                background: var(--surface);
+                padding: 0.75rem 1rem;
+                border-radius: 0 8px 8px 0;
+                margin: 1.5rem 0;
+                font-size: 0.95rem;
+            }
+            section.card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 1.25rem;
+                margin: 1rem 0;
+            }
+            section.card[aria-disabled="true"] {
+                opacity: 0.55;
+            }
+            .drop {
+                display: block;
+                border: 2px dashed var(--border);
+                border-radius: 10px;
+                padding: 1.5rem 1rem;
+                text-align: center;
+                cursor: pointer;
+                transition:
+                    border-color 0.15s,
+                    background 0.15s;
+            }
+            .drop:hover,
+            .drop.dragging {
+                border-color: var(--accent);
+            }
+            .drop:focus-within {
+                outline: 3px solid var(--focus);
+                outline-offset: 2px;
+            }
+            .drop input {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                opacity: 0;
+            }
+            .drop strong {
+                color: var(--accent);
+            }
+            .hint {
+                color: var(--muted);
+                font-size: 0.9rem;
+                overflow-wrap: anywhere;
+            }
+            .status {
+                margin: 0.75rem 0 0;
+                font-weight: 600;
+            }
+            .status:empty {
+                display: none;
+            }
+            .status.ok {
+                color: var(--ok);
+            }
+            .status.warn {
+                color: var(--warn);
+            }
+            .status.error {
+                color: var(--error);
+            }
+            fieldset {
+                border: 0;
+                margin: 0;
+                padding: 0;
+            }
+            legend {
+                font-weight: 600;
+                margin-bottom: 0.35rem;
+                padding: 0;
+            }
+            .option {
+                display: flex;
+                gap: 0.6rem;
+                align-items: flex-start;
+                padding: 0.45rem 0;
+            }
+            .option input[type="radio"] {
+                margin-top: 0.3rem;
+                accent-color: var(--accent);
+            }
+            .option small {
+                display: block;
+                color: var(--muted);
+            }
+            input[type="number"] {
+                width: 5.5rem;
+                font: inherit;
+                padding: 0.2rem 0.4rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+            }
+            .button {
+                display: inline-block;
+                background: var(--accent);
+                color: var(--accent-text);
+                font-weight: 600;
+                text-decoration: none;
+                padding: 0.7rem 1.2rem;
+                border-radius: 8px;
+            }
+            .button[aria-disabled="true"] {
+                background: var(--border);
+                color: var(--muted);
+                pointer-events: none;
+            }
+            ol.flash {
+                padding-left: 1.3rem;
+                margin: 0.5rem 0 0;
+            }
+            ol.flash li {
+                margin: 0.2rem 0;
+            }
+            code {
+                font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+                font-size: 0.88em;
+                overflow-wrap: anywhere;
+            }
+            footer {
+                color: var(--muted);
+                font-size: 0.85rem;
+                margin-top: 2rem;
+            }
+            noscript p {
+                color: var(--error);
+                font-weight: 600;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <h1>Matriarch Firmware Patcher</h1>
+            <p class="lead">
+                Apply unofficial bug fixes to your own copy of the Moog Matriarch firmware v1.3.0. Everything happens in
+                your browser. Your file is never uploaded anywhere.
+            </p>
+
+            <div class="notice">
+                <strong>Unofficial. Use at your own risk.</strong> This project isn't affiliated with or endorsed by
+                Moog Music. You can always go back by flashing Moog's original firmware.
+            </div>
+
+            <noscript><p>This patcher needs JavaScript to run.</p></noscript>
+
+            <section class="card" aria-labelledby="step1">
+                <h2 id="step1"><span class="step" aria-hidden="true">1</span>Choose Moog's firmware file</h2>
+                <label class="drop" id="drop">
+                    <input type="file" id="file" accept=".syx,.SYX" />
+                    <span><strong>Choose a file</strong> or drop it here</span><br />
+                    <span class="hint"
+                        >Matriarch_Firmware_v1_3_0.syx, from Moog's v1.3.0 download or the Moog Firmware Updater</span
+                    >
+                </label>
+                <p class="status" id="status" role="status" aria-live="polite"></p>
+            </section>
+
+            <section class="card" id="options" aria-labelledby="step2" aria-disabled="true">
+                <h2 id="step2"><span class="step" aria-hidden="true">2</span>Choose the fix</h2>
+                <fieldset id="mixgate" disabled>
+                    <legend>Paraphonic mixer gate length</legend>
+                    <p class="hint">
+                        In paraphonic mode, a released key keeps sounding for 125 ms while other keys are held. Choose
+                        how long it should keep sounding instead.
+                    </p>
+                    <label class="option">
+                        <input type="radio" name="ms" value="5" checked />
+                        <span>5 ms<small>Released notes stop almost immediately. Recommended.</small></span>
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="ms" value="50" />
+                        <span>50 ms<small>The same behaviour as firmware v1.1.0.</small></span>
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="ms" value="custom" />
+                        <span
+                            >Custom:
+                            <input
+                                type="number"
+                                id="custom-ms"
+                                min="0"
+                                max="125"
+                                step="1"
+                                value="20"
+                                aria-label="Custom delay in milliseconds"
+                            />
+                            ms<small>Any whole number from 0 to 125.</small></span
+                        >
+                    </label>
+                </fieldset>
+            </section>
+
+            <section class="card" id="download-step" aria-labelledby="step3" aria-disabled="true">
+                <h2 id="step3"><span class="step" aria-hidden="true">3</span>Download and flash</h2>
+                <p>
+                    <a class="button" id="download" aria-disabled="true">Download patched firmware</a>
+                </p>
+                <p class="hint" id="download-name"></p>
+                <p>
+                    Flash it with a SysEx tool (SysEx Librarian on macOS, Bome SendSX on Windows) using Moog's normal
+                    procedure:
+                </p>
+                <ol class="flash">
+                    <li>Send <code>Matriarch_FIRMWARE_INVALIDATE.syx</code>.</li>
+                    <li>Re-select the Matriarch as the MIDI output (it reboots).</li>
+                    <li>Send <code>Matriarch_FIRMWARE_ERASE.syx</code>.</li>
+                    <li>Send the patched file.</li>
+                </ol>
+                <p class="hint">
+                    Use a direct USB cable and don't touch the synth during the transfer. To go back to stock, repeat
+                    the steps with Moog's original file.
+                </p>
+            </section>
+
+            <footer>
+                <p>
+                    Source code, technical details and the command-line version:
+                    <a href="https://github.com/benjamindehli/matriarch-firmware-fixes"
+                        >github.com/benjamindehli/matriarch-firmware-fixes</a
+                    >. Free software under the GNU GPL v3.0 or later. Moog and Matriarch are trademarks of Moog Music
+                    Inc.
+                </p>
+            </footer>
+        </main>
+
+        <script type="module">
+            import { Firmware, FirmwareError } from "./matriarch-syx.js";
+            import { mixGateState, patchMixGate } from "./fixes.js";
+
+            const $ = (id) => document.getElementById(id);
+            const fileInput = $("file");
+            const drop = $("drop");
+            const status = $("status");
+            const fieldset = $("mixgate");
+            const customMs = $("custom-ms");
+            const download = $("download");
+            const downloadName = $("download-name");
+
+            let source = null; // bytes of a valid, unpatched v1.3.0 file
+            let url = null;
+            let loading = 0; // id of the newest file being read, so older reads can't overwrite it
+
+            function setStatus(kind, text) {
+                status.className = `status ${kind}`;
+                status.textContent = text;
+            }
+
+            function enable(ready) {
+                fieldset.disabled = !ready;
+                $("options").setAttribute("aria-disabled", String(!ready));
+                $("download-step").setAttribute("aria-disabled", String(!ready));
+                if (!ready) {
+                    source = null;
+                    download.setAttribute("aria-disabled", "true");
+                    download.removeAttribute("href");
+                    downloadName.textContent = "";
+                }
+            }
+
+            function selectedMs() {
+                const choice = document.querySelector('input[name="ms"]:checked').value;
+                if (choice !== "custom") return Number(choice);
+                const ms = Number(customMs.value);
+                return Number.isInteger(ms) && ms >= 0 && ms <= 125 ? ms : null;
+            }
+
+            function update() {
+                if (!source) return;
+                if (url) URL.revokeObjectURL(url);
+                url = null;
+                const ms = selectedMs();
+                if (ms === null) {
+                    download.setAttribute("aria-disabled", "true");
+                    download.removeAttribute("href");
+                    downloadName.textContent = "Enter a custom delay from 0 to 125 ms.";
+                    return;
+                }
+                const fw = new Firmware(source);
+                patchMixGate(fw, ms);
+                const name = `Matriarch_Firmware_v1_3_0_mixgate${ms}ms.syx`;
+                url = URL.createObjectURL(
+                    new Blob([fw.bytes()], {
+                        type: "application/octet-stream",
+                    }),
+                );
+                download.href = url;
+                download.download = name;
+                download.setAttribute("aria-disabled", "false");
+                downloadName.textContent = name;
+            }
+
+            async function load(file) {
+                const id = ++loading;
+                enable(false);
+                if (!file) return;
+                setStatus("", "Reading file...");
+                try {
+                    const bytes = new Uint8Array(await file.arrayBuffer());
+                    if (id !== loading) return;
+                    const fw = new Firmware(bytes);
+                    const gate = mixGateState(fw);
+                    if (gate.state === "patched") {
+                        setStatus(
+                            "warn",
+                            `This file is already patched (${gate.ms} ms). Start from Moog's original v1.3.0 file.`,
+                        );
+                    } else if (gate.state === "unsupported") {
+                        setStatus(
+                            "warn",
+                            `This is Matriarch firmware v${fw.version}. The patcher only supports v1.3.0.`,
+                        );
+                    } else {
+                        source = bytes;
+                        setStatus("ok", `Matriarch firmware v${fw.version}, ready to patch.`);
+                        enable(true);
+                        update();
+                    }
+                } catch (err) {
+                    if (id !== loading) return;
+                    setStatus("error", err instanceof FirmwareError ? err.message : "Couldn't read this file.");
+                }
+            }
+
+            fileInput.addEventListener("change", () => load(fileInput.files[0]));
+            fieldset.addEventListener("change", update);
+            customMs.addEventListener("input", () => {
+                document.querySelector('input[name="ms"][value="custom"]').checked = true;
+                update();
+            });
+
+            for (const type of ["dragenter", "dragover"]) {
+                drop.addEventListener(type, (e) => {
+                    e.preventDefault();
+                    drop.classList.add("dragging");
+                });
+            }
+            for (const type of ["dragleave", "drop"]) {
+                drop.addEventListener(type, () => drop.classList.remove("dragging"));
+            }
+            drop.addEventListener("drop", (e) => {
+                e.preventDefault();
+                load(e.dataTransfer.files[0]);
+            });
+        </script>
+    </body>
+</html>

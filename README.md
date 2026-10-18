@@ -6,9 +6,9 @@ Unofficial bug fixes for the Moog Matriarch firmware v1.3.0, the last release be
 
 ## Fixes
 
-| Fix                          | Script                   | Status                              |
-| ---------------------------- | ------------------------ | ----------------------------------- |
-| Paraphonic Mixer Gate Length | `tools/patch_mixgate.py` | Tested on hardware (5 ms and 50 ms) |
+| Fix                          | Web patcher | Script                   | Status                              |
+| ---------------------------- | ----------- | ------------------------ | ----------------------------------- |
+| Paraphonic Mixer Gate Length | Yes         | `tools/patch_mixgate.py` | Tested on hardware (5 ms and 50 ms) |
 
 ### Paraphonic Mixer Gate Length
 
@@ -23,7 +23,15 @@ When the _last_ key is released, the VCA envelope's release shapes the tail exac
 
 ## How to patch and flash
 
-You need Python 3 and Moog's official **v1.3.0** firmware (`Matriarch_Firmware_v1_3_0.syx`), which comes with the Moog Firmware Updater or Moog's v1.3.0 download.
+You need Moog's official **v1.3.0** firmware (`Matriarch_Firmware_v1_3_0.syx`), which comes with the Moog Firmware Updater or Moog's v1.3.0 download.
+
+### In your browser (easiest)
+
+Open the **[Matriarch Firmware Patcher](https://benjamindehli.github.io/matriarch-firmware-fixes/)**, choose your firmware file, pick the fix, and download the patched file. Everything runs locally in your browser. Your file is never uploaded. The page then shows how to flash the patched file.
+
+### On the command line
+
+You need Python 3.
 
 1. Create the patched file:
    ```sh
@@ -71,14 +79,16 @@ The 125 ms change isn't in any release notes. Moog support has said the hold is 
 
 ## Tools
 
-| File                     | Purpose                                                                           |
-| ------------------------ | --------------------------------------------------------------------------------- |
-| `tools/matriarch_syx.py` | Parses `.syx` files, verifies checksums and patches words in place                |
-| `tools/patch_mixgate.py` | The mixer gate fix                                                                |
-| `tools/syx2bin.py`       | Extracts a flat image to load at word address `0x88000`                           |
-| `tools/periph_map.py`    | Shows which functions touch which peripherals (from `refs.tsv`)                   |
-| `tools/ghidra_scripts/`  | `ExportDecomp.java` (decompiled C + references) and `DumpListing.java` (listings) |
-| `tools/listing.sh`       | Dumps a listing from a local Ghidra project in `work/ghidra`                      |
+| File                     | Purpose                                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `tools/matriarch_syx.py` | Parses `.syx` files, verifies checksums and patches words in place                                           |
+| `tools/patch_mixgate.py` | The mixer gate fix                                                                                           |
+| `tools/syx2bin.py`       | Extracts a flat image to load at word address `0x88000`                                                      |
+| `tools/periph_map.py`    | Shows which functions touch which peripherals (from `refs.tsv`)                                              |
+| `tools/ghidra_scripts/`  | `ExportDecomp.java` (decompiled C + references) and `DumpListing.java` (listings)                            |
+| `tools/listing.sh`       | Dumps a listing from a local Ghidra project in `work/ghidra`                                                 |
+| `web/`                   | The web patcher: `index.html`, plus `matriarch-syx.js` and `fixes.js` (JavaScript ports of the Python tools) |
+| `tests/`                 | Tests for both patchers against Moog's official v1.3.0 file, with expected hashes in `expected.json`         |
 
 The analysis setup is Ghidra 12.1.2 with the [ghidra-tms320c28x](https://github.com/outlandnish/ghidra-tms320c28x) processor module. Import the image from `syx2bin.py` as raw binary with language `TMS320C28x:LE:32:default` and base address `0x88000`, then run the module's `SetupF28377D.java CPU1` and `SeedFunctions.java` before auto-analysis.
 
@@ -92,8 +102,20 @@ ruff check .          # lint
 ruff format .         # format Python
 
 npm install
-npm run format        # format Markdown and JSON
+npm run format        # format Markdown, JSON, HTML and JavaScript
 ```
+
+The tests need Moog's official v1.3.0 file. Point `MATRIARCH_FIRMWARE` at it (the tests are skipped otherwise):
+
+```sh
+export MATRIARCH_FIRMWARE=/path/to/Matriarch_Firmware_v1_3_0.syx
+python3 -m unittest discover -s tests -v
+npm test
+```
+
+They check that both patchers produce files byte-identical to the builds tested on hardware. To try the web patcher locally, serve the `web/` folder (`python3 -m http.server -d web`) and open `http://localhost:8000`. It doesn't work when opened directly as a file.
+
+The `CI` workflow (`.github/workflows/ci.yml`) runs the linters and tests on every push and pull request. For the tests, it downloads Moog's official firmware from the URL their own updater uses. The file is only used for testing and is never published. When everything passes on `main`, the workflow deploys `web/` to GitHub Pages.
 
 ## Releases
 
