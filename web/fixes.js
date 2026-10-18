@@ -5,6 +5,9 @@
 
 import { FirmwareError } from "./matriarch-syx.js";
 
+/** SHA-256 of Moog's official Matriarch_Firmware_v1_3_0.syx, the only file the fixes are made for. */
+export const OFFICIAL_V1_3_0_SHA256 = "2f414599472e928fccfba687b9fa4bb8639fdd8a9573ace1df408ed587ad6f67";
+
 const MIXGATE_SITE = 0x8b991;
 const MIXGATE_ORIGINAL = [0x8f01, 0xe848]; // MOVL XAR4,#125000
 

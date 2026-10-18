@@ -79,16 +79,16 @@ The 125 ms change isn't in any release notes. Moog support has said the hold is 
 
 ## Tools
 
-| File                     | Purpose                                                                                                      |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `tools/matriarch_syx.py` | Parses `.syx` files, verifies checksums and patches words in place                                           |
-| `tools/patch_mixgate.py` | The mixer gate fix                                                                                           |
-| `tools/syx2bin.py`       | Extracts a flat image to load at word address `0x88000`                                                      |
-| `tools/periph_map.py`    | Shows which functions touch which peripherals (from `refs.tsv`)                                              |
-| `tools/ghidra_scripts/`  | `ExportDecomp.java` (decompiled C + references) and `DumpListing.java` (listings)                            |
-| `tools/listing.sh`       | Dumps a listing from a local Ghidra project in `work/ghidra`                                                 |
-| `web/`                   | The web patcher: `index.html`, plus `matriarch-syx.js` and `fixes.js` (JavaScript ports of the Python tools) |
-| `tests/`                 | Tests for both patchers against Moog's official v1.3.0 file, with expected hashes in `expected.json`         |
+| File                     | Purpose                                                                                                                                                                                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tools/matriarch_syx.py` | Parses `.syx` files, verifies checksums and patches words in place                                                                                                                                                                                  |
+| `tools/patch_mixgate.py` | The mixer gate fix                                                                                                                                                                                                                                  |
+| `tools/syx2bin.py`       | Extracts a flat image to load at word address `0x88000`                                                                                                                                                                                             |
+| `tools/periph_map.py`    | Shows which functions touch which peripherals (from `refs.tsv`)                                                                                                                                                                                     |
+| `tools/ghidra_scripts/`  | `ExportDecomp.java` (decompiled C + references) and `DumpListing.java` (listings)                                                                                                                                                                   |
+| `tools/listing.sh`       | Dumps a listing from a local Ghidra project in `work/ghidra`                                                                                                                                                                                        |
+| `web/`                   | The website with the web patcher (`index.html`, `style.css`, and `matriarch-syx.js` and `fixes.js`, JavaScript ports of the Python tools), plus `404.html`, `robots.txt`, `sitemap.xml`, `llms.txt`, the Markdown mirror `index.html.md` and images |
+| `tests/`                 | Tests for both patchers against Moog's official v1.3.0 file, with expected hashes in `expected.json`                                                                                                                                                |
 
 The analysis setup is Ghidra 12.1.2 with the [ghidra-tms320c28x](https://github.com/outlandnish/ghidra-tms320c28x) processor module. Import the image from `syx2bin.py` as raw binary with language `TMS320C28x:LE:32:default` and base address `0x88000`, then run the module's `SetupF28377D.java CPU1` and `SeedFunctions.java` before auto-analysis.
 
