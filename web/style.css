@@ -1,0 +1,478 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later
+   Copyright (C) 2026 Benjamin Dehli */
+
+:root {
+    color-scheme: light dark;
+    /* Section colours sampled from the Matriarch faceplate */
+    --yellow: #eeed75; /* Arp/Seq */
+    --blue: #99d0de; /* Oscillators */
+    --green: #8ed483; /* Filters */
+    --lavender: #d1abec; /* Stereo Delay */
+    --orange: #fd8b56; /* lit Sync and Multi Trig buttons */
+    --black: #1f1f1f; /* panel */
+    --on-panel: #161616;
+    --on-panel-muted: #3d3d3d;
+
+    --bg: #f3f2ee;
+    --surface: #ffffff;
+    --text: #161616;
+    --muted: #57534e;
+    --border: #d9d6cf;
+    --accent: #a3401a;
+    --ok: #14532d;
+    --warn: #6b3d00;
+    --error: #9b1c1c;
+    --focus: #1a5fb4;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #121212;
+        --surface: #1f1f1f;
+        --text: #ececec;
+        --muted: #a9a9a9;
+        --border: #333333;
+        --accent: #fd8b56;
+        --focus: #8ab4f8;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font:
+        16px/1.55 system-ui,
+        -apple-system,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+}
+
+.page {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 1.25rem 1.25rem 3rem;
+}
+
+/* ---- skip link, header ------------------------------------------------- */
+
+.skip {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    color: var(--text);
+}
+
+.skip:focus {
+    left: 1rem;
+    top: 0.75rem;
+    z-index: 10;
+}
+
+main:focus {
+    outline: none;
+}
+
+.site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+/* The four section colours of the faceplate, in panel order */
+.stripe {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(
+        to right,
+        var(--yellow) 0 25%,
+        var(--blue) 25% 50%,
+        var(--green) 50% 75%,
+        var(--lavender) 75%
+    );
+}
+
+.site-header .home {
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.site-header nav ul {
+    display: flex;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* ---- text -------------------------------------------------------------- */
+
+h1 {
+    font-size: 2rem;
+    line-height: 1.2;
+    margin: 2rem 0 0.5rem;
+}
+
+h2 {
+    font-size: 1.35rem;
+    line-height: 1.3;
+    margin: 2.5rem 0 0.75rem;
+}
+
+h3 {
+    font-size: 1.05rem;
+    margin: 1.5rem 0 0.5rem;
+}
+
+p {
+    margin: 0 0 0.75rem;
+}
+
+.lead {
+    color: var(--muted);
+    font-size: 1.1rem;
+}
+
+a {
+    color: var(--accent);
+}
+
+:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+}
+
+code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.88em;
+    overflow-wrap: anywhere;
+}
+
+.hint {
+    color: var(--muted);
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+}
+
+.notice {
+    border-left: 4px solid var(--orange);
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    border-radius: 0 8px 8px 0;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
+}
+
+.table-wrap {
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.95rem;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+}
+
+th {
+    font-weight: 600;
+    background: var(--lavender);
+    color: var(--on-panel);
+    padding-left: 0.75rem;
+}
+
+/* ---- links row (source, star, follow) ---------------------------------- */
+
+.links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.95rem;
+    text-decoration: none;
+}
+
+.links a:hover {
+    border-color: var(--orange);
+    color: var(--text);
+}
+
+.links svg {
+    width: 1rem;
+    height: 1rem;
+    fill: currentColor;
+}
+
+/* ---- patcher ----------------------------------------------------------- */
+
+.step {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 50%;
+    background: var(--black);
+    color: #ffffff;
+    font-size: 0.9rem;
+}
+
+section.card {
+    /* The panels are light in both themes, so form controls should be drawn light too */
+    color-scheme: light;
+    --panel: var(--surface);
+    background: var(--panel);
+    color: var(--on-panel);
+    border-radius: 6px;
+    padding: 1.25rem;
+    margin: 1rem 0;
+}
+
+#patcher section.card:nth-child(1) {
+    --panel: var(--yellow);
+}
+
+#patcher section.card:nth-child(2) {
+    --panel: var(--blue);
+}
+
+#patcher section.card:nth-child(3) {
+    --panel: var(--green);
+}
+
+section.card .hint {
+    color: var(--on-panel-muted);
+}
+
+section.card a:not(.button) {
+    color: var(--on-panel);
+}
+
+section.card h2 {
+    font-size: 1.1rem;
+    margin: 0 0 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+section.card[aria-disabled="true"] {
+    opacity: 0.55;
+}
+
+.drop {
+    display: block;
+    border: 2px dashed rgba(0, 0, 0, 0.4);
+    border-radius: 6px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition:
+        border-color 0.15s,
+        background 0.15s;
+}
+
+.drop:hover,
+.drop.dragging {
+    border-color: var(--black);
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.drop:focus-within {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+}
+
+.drop input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.drop strong {
+    text-decoration: underline;
+}
+
+.status {
+    margin: 0.75rem 0 0;
+    font-weight: 600;
+}
+
+.status:empty {
+    display: none;
+}
+
+.status.ok {
+    color: var(--ok);
+}
+
+.status.warn {
+    color: var(--warn);
+}
+
+.status.error {
+    color: var(--error);
+}
+
+fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+legend {
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    padding: 0;
+}
+
+.option {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    padding: 0.45rem 0;
+}
+
+.option input[type="radio"] {
+    margin-top: 0.3rem;
+    accent-color: var(--black);
+}
+
+.option small {
+    display: block;
+    color: var(--on-panel-muted);
+}
+
+input[type="number"] {
+    width: 5.5rem;
+    font: inherit;
+    padding: 0.2rem 0.4rem;
+    border: 1px solid var(--black);
+    border-radius: 4px;
+    background: #ffffff;
+    color: var(--on-panel);
+}
+
+.button {
+    display: inline-block;
+    background: var(--orange);
+    color: var(--on-panel);
+    font-weight: 700;
+    text-decoration: none;
+    padding: 0.7rem 1.2rem;
+    border-radius: 6px;
+    box-shadow:
+        0 0 0 2px var(--black),
+        0 0 14px rgba(253, 139, 86, 0.55);
+}
+
+.button[aria-disabled="true"] {
+    background: rgba(0, 0, 0, 0.12);
+    color: var(--on-panel-muted);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+}
+
+ol.flash {
+    padding-left: 1.3rem;
+    margin: 0.5rem 0 0.75rem;
+}
+
+ol.flash li {
+    margin: 0.2rem 0;
+}
+
+/* ---- questions --------------------------------------------------------- */
+
+details {
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 0;
+}
+
+details summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+details p {
+    margin: 0.5rem 0 0;
+}
+
+/* ---- footer ------------------------------------------------------------ */
+
+footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.maker {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.maker img {
+    width: 84px;
+    height: auto;
+    flex: none;
+}
+
+.elsewhere {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+}
+
+noscript p {
+    color: var(--error);
+    font-weight: 600;
+}
+
+/* The dark-mode focus colour is too light on the pastel panels */
+section.card :focus-visible,
+section.card .drop:focus-within {
+    outline-color: var(--black);
+}

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://benjamindehli.github.io/matriarch-firmware-fixes/sitemap.xml
+
+# A summary of the project for language models, in the shape llmstxt.org
+# describes. Not a standard a crawler is obliged to look for, so it is
+# named here as well.
+# https://benjamindehli.github.io/matriarch-firmware-fixes/llms.txt

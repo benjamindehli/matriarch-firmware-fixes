@@ -1,0 +1,12 @@
+{
+  "source": {
+    "description": "Moog's official Matriarch firmware v1.3.0, as listed by the Moog Firmware Updater",
+    "zip_url": "https://moogmusic-firmware-dev.s3.us-east-2.amazonaws.com/Matriarch_Firmware_v1_3_0.zip",
+    "zip_member": "Matriarch_Firmware_v1_3_0/Matriarch_Firmware_v1_3_0.syx",
+    "sha256": "2f414599472e928fccfba687b9fa4bb8639fdd8a9573ace1df408ed587ad6f67"
+  },
+  "mixgate": {
+    "5": "020ebc2f4be3e5096f53f1e65a40982c7ef9d35284c09b6c383f6b889286f144",
+    "50": "0f266384d8cb4ff0295d63cb96d1aef6b5d2b8bb2d57f0eea7db78e7eb3b1232"
+  }
+}
