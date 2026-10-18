@@ -2,7 +2,7 @@
 # Copyright (C) 2026 Benjamin Dehli
 """Read and patch Moog Matriarch firmware .syx files.
 
-Format (reverse engineered from v1.3.0):
+Format (as found in v1.3.0):
   F0 04 17 <payload> F7    -- one SysEx message, Moog (04), Matriarch (17)
   payload = 00-padding + records. A record starts with byte 01, then N triplets.
   triplet = [0x40 | b15..b12] [b11..b6] [b5..b0]  -> one 16-bit word
