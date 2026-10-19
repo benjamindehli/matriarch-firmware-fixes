@@ -17,8 +17,10 @@ Moog's v1.3.0 known-issues list says: _"Paraphonic Mixer Gate Length - Mixer gat
 
 In 2- and 4-note paraphonic mode, releasing a key while another key is still held keeps that oscillator sounding for another **125 ms**. Staccato notes over a held note, or fast playing where keys overlap, smear together (see the Moog forum thread "Matriarch - staccato playing in paraphonic modes"). The patch shortens the hold:
 
-- `--ms 5`: released notes stop almost immediately (recommended)
-- `--ms 50`: the v1.1.0 behaviour
+- `--ms 50`: the v1.1.0 behaviour (recommended)
+- `--ms 5`: released notes stop almost immediately, best with short release times
+
+**Known limitation:** The hold also decides whether keys were lifted together. When you lift a chord, all its notes ring out with the release only if each key comes up within the hold time of the previous one. With 5 ms that almost never happens, so with a long release only the last note or two keep their tail. 50 ms covers most chord releases and is the recommended setting. A smarter fix that tells a lifted chord apart from staccato playing is in progress.
 
 When the _last_ key is released, the VCA envelope's release shapes the tail exactly as before.
 
@@ -56,7 +58,7 @@ You need Python 3.
 
 1. Create the patched file:
    ```sh
-   python3 tools/patch.py Matriarch_Firmware_v1_3_0.syx Matriarch_Firmware_v1_3_0_patched.syx --mixgate 5 --hold
+   python3 tools/patch.py Matriarch_Firmware_v1_3_0.syx Matriarch_Firmware_v1_3_0_patched.syx --mixgate 50 --hold
    ```
    Leave out `--mixgate` or `--hold` to apply only one of the fixes. The script refuses to patch anything that isn't unpatched v1.3.0.
 2. Flash it with a SysEx tool (SysEx Librarian on macOS, Bome SendSX on Windows), following Moog's normal procedure:

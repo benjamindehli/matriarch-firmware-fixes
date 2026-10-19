@@ -24,7 +24,7 @@ def main():
     ap = argparse.ArgumentParser(description='Apply fixes to Moog Matriarch firmware v1.3.0.')
     ap.add_argument('src')
     ap.add_argument('dst')
-    ap.add_argument('--mixgate', type=float, metavar='MS', help='paraphonic mixer gate hold in ms (recommended: 5)')
+    ap.add_argument('--mixgate', type=float, metavar='MS', help='paraphonic mixer gate hold in ms (recommended: 50)')
     ap.add_argument('--hold', action='store_true', help='HOLD sends sustain only while the Arp/Seq is stopped')
     args = ap.parse_args()
     if args.mixgate is None and not args.hold:

@@ -13,7 +13,7 @@ code, so short or overlapping notes keep sounding for an extra 125 ms.
 
 This rewrites the immediate of the MOVL at 0x8b991.
 
-Usage: python3 patch_mixgate.py <in.syx> <out.syx> [--ms 5]
+Usage: python3 patch_mixgate.py <in.syx> <out.syx> [--ms 50]
 """
 
 import argparse
@@ -48,7 +48,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('src')
     ap.add_argument('dst')
-    ap.add_argument('--ms', type=float, default=5.0, help='mixer gate release delay in ms (v1.3.0: 125)')
+    ap.add_argument('--ms', type=float, default=50.0, help='mixer gate hold in ms (v1.3.0: 125, recommended: 50)')
     args = ap.parse_args()
 
     fw = Firmware(args.src)

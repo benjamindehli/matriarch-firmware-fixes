@@ -18,7 +18,7 @@ The patcher itself is interactive and needs a browser with JavaScript: https://b
 
 1. Choose Moog's firmware file, `Matriarch_Firmware_v1_3_0.syx`, from Moog's v1.3.0 download or the Moog Firmware Updater. The page checks that it's Matriarch firmware v1.3.0 and compares it with the SHA-256 of Moog's official file.
 2. Choose the fixes. Both are selected by default, and you can apply either one on its own:
-   - Fix the paraphonic mixer gate length: 5 ms (recommended), 50 ms (the same behaviour as firmware v1.1.0), or a whole number from 0 to 125.
+   - Fix the paraphonic mixer gate length: 50 ms (recommended, the same behaviour as firmware v1.1.0), 5 ms (best with short release times), or a whole number from 0 to 125.
    - Fix HOLD sending sustain while the Arp/Seq is playing: with the fix, HOLD sends sustain (MIDI CC 64) only while the Arp/Seq is stopped.
 3. Download the patched file and flash it with a SysEx tool (SysEx Librarian on macOS, Bome SendSX on Windows) using Moog's normal procedure:
    1. Send `Matriarch_FIRMWARE_INVALIDATE.syx`.
@@ -48,6 +48,8 @@ Moog lists this as a known issue in the v1.3.0 release notes: _"Paraphonic Mixer
 | v1.3.0, patched | 5 ms, 50 ms or your own value |
 
 The patch changes the one value that sets the hold. When you release the last key, the VCA envelope's release shapes the tail exactly as before, and Multi Trig and its envelope retrigger timing are untouched. The [technical details](https://github.com/benjamindehli/matriarch-firmware-fixes#how-the-fixes-work) are in the repository.
+
+**Known limitation:** The hold also decides whether keys were lifted together. When you lift a chord, all its notes ring out with the release only if each key comes up within the hold time of the previous one. With 5 ms that almost never happens, so with a long release only the last note or two keep their tail. 50 ms covers most chord releases and is the recommended setting. A smarter fix that tells a lifted chord apart from staccato playing is in progress.
 
 ### HOLD sends sustain while the Arp/Seq is playing
 
@@ -81,7 +83,7 @@ If one of these affects you, say so in the [issue tracker](https://github.com/be
 
 ### Why can't I play staccato in paraphonic mode on the Moog Matriarch?
 
-In firmware v1.2.3 and v1.3.0, when you release a key in 2- or 4-note paraphonic mode while other keys are still held, the Matriarch keeps that oscillator's mixer gate open for another 125 ms. Short notes and fast overlapping notes smear together. Moog lists it as the known issue "Paraphonic Mixer Gate Length" in the v1.3.0 release notes. This patcher shortens the hold to 5 ms or any value you choose.
+In firmware v1.2.3 and v1.3.0, when you release a key in 2- or 4-note paraphonic mode while other keys are still held, the Matriarch keeps that oscillator's mixer gate open for another 125 ms. Short notes and fast overlapping notes smear together. Moog lists it as the known issue "Paraphonic Mixer Gate Length" in the v1.3.0 release notes. This patcher shortens the hold to 50 ms (recommended), 5 ms or any value you choose.
 
 ### Why do my other synths sustain when I latch the arpeggiator with HOLD?
 
@@ -109,7 +111,7 @@ Flash Moog's original `Matriarch_Firmware_v1_3_0.syx` with the same procedure: s
 
 ### Which delay should I choose?
 
-5 ms makes released notes stop almost immediately, which suits staccato playing. 50 ms is how firmware v1.1.0 behaved, before the hold was raised to 125 ms. Moog's reason for the hold was to avoid completely missing quickly played notes, so if very short taps feel too quiet, try a value in between.
+50 ms is recommended. It's how firmware v1.1.0 behaved, and most chord releases still ring out with the envelope release, while staccato is much tighter than the original 125 ms. 5 ms makes released notes stop almost immediately, which suits staccato playing with short release times. With a long release it cuts off notes when you lift a chord, because the hold also decides whether keys were lifted together: each key has to come up within the hold time of the previous one for all notes to ring out.
 
 ### Does the patch affect Multi Trig or the stuck-envelope fixes?
 
