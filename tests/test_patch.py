@@ -44,14 +44,14 @@ class PatchTests(unittest.TestCase):
         fw.write(0x88000, fw.read(0x88000))
         self.assertEqual(bytes(fw.raw), self.original)
 
-    def test_mixgate_patch_matches_hardware_tested_builds(self):
+    def test_mixgate_patch_matches_expected_builds(self):
         for ms, expected in EXPECTED['mixgate'].items():
             with self.subTest(ms=ms):
                 fw = Firmware(SOURCE)
                 patch(fw, float(ms))
                 self.assertEqual(sha256(bytes(fw.raw)), expected)
 
-    def test_mixgate_patch_changes_only_two_words(self):
+    def test_mixgate_patch_changes_only_its_words(self):
         fw = Firmware(SOURCE)
         patch(fw, 5)
         with tempfile.TemporaryDirectory() as tmp:
@@ -63,8 +63,17 @@ class PatchTests(unittest.TestCase):
         _, b = patched.image()
         wa = struct.unpack(f'<{len(a) // 2}H', a)
         wb = struct.unpack(f'<{len(b) // 2}H', b)
-        changed = [0x88000 + i for i, (x, y) in enumerate(zip(wa, wb)) if x != y]
-        self.assertEqual(changed, [0x8B991, 0x8B992])
+        changed = {0x88000 + i for i, (x, y) in enumerate(zip(wa, wb)) if x != y}
+        expected = {0x88CA9, 0x88CAA, 0x88E65, 0x88E66, 0x88E67}
+        expected |= set(range(0xA2040, 0xA207C)) | set(range(0xA2080, 0xA20B5))
+        self.assertEqual(changed, expected)
+        self.assertEqual(patched.read(0x8B991, 2), [0x8F01, 0xE848])  # Moog's 125 ms stays
+
+    def test_refuses_files_with_the_older_mixgate_fix(self):
+        fw = Firmware(SOURCE)
+        fw.write(0x8B991, [0x8F00, 0x1388])  # v1.x of this project: 125 ms hold changed to 5 ms
+        with self.assertRaises(ValueError):
+            patch(fw, 5)
 
     def test_refuses_to_patch_twice(self):
         fw = Firmware(SOURCE)

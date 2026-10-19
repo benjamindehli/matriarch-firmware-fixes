@@ -8,7 +8,7 @@ Unofficial bug fixes for the Moog Matriarch firmware v1.3.0, the last release be
 
 | Fix                                             | Web patcher | Script                   | Status                                            |
 | ----------------------------------------------- | ----------- | ------------------------ | ------------------------------------------------- |
-| Paraphonic Mixer Gate Length                    | Yes         | `tools/patch_mixgate.py` | Tested on hardware (5 ms and 50 ms)               |
+| Paraphonic Mixer Gate Length                    | Yes         | `tools/patch_mixgate.py` | Hardware test pending for the chord-aware version |
 | HOLD sends sustain while the Arp/Seq is playing | Yes         | `tools/patch_holdcc.py`  | Tested on hardware, with a Yamaha DX7 on MIDI out |
 
 ### Paraphonic Mixer Gate Length
@@ -17,10 +17,10 @@ Moog's v1.3.0 known-issues list says: _"Paraphonic Mixer Gate Length - Mixer gat
 
 In 2- and 4-note paraphonic mode, releasing a key while another key is still held keeps that oscillator sounding for another **125 ms**. Staccato notes over a held note, or fast playing where keys overlap, smear together (see the Moog forum thread "Matriarch - staccato playing in paraphonic modes"). The patch shortens the hold:
 
-- `--ms 50`: the v1.1.0 behaviour (recommended)
-- `--ms 5`: released notes stop almost immediately, best with short release times
+- `--ms 5`: released notes stop almost immediately (recommended)
+- `--ms 50`: the v1.1.0 behaviour
 
-**Known limitation:** The hold also decides whether keys were lifted together. When you lift a chord, all its notes ring out with the release only if each key comes up within the hold time of the previous one. With 5 ms that almost never happens, so with a long release only the last note or two keep their tail. 50 ms covers most chord releases and is the recommended setting. A smarter fix that tells a lifted chord apart from staccato playing is in progress.
+The hold also decides whether keys were lifted together: when you lift a chord, its notes ring out with the release only if each key comes up within the hold time of the previous one. So the fix keeps Moog's 125 ms for a note you pressed together with a key that's still held, and uses the short hold only for the others, such as staccato notes over a held chord or the notes of a fast run. Lifted chords ring out exactly as with Moog's firmware.
 
 When the _last_ key is released, the VCA envelope's release shapes the tail exactly as before.
 
@@ -58,7 +58,7 @@ You need Python 3.
 
 1. Create the patched file:
    ```sh
-   python3 tools/patch.py Matriarch_Firmware_v1_3_0.syx Matriarch_Firmware_v1_3_0_patched.syx --mixgate 50 --hold
+   python3 tools/patch.py Matriarch_Firmware_v1_3_0.syx Matriarch_Firmware_v1_3_0_patched.syx --mixgate 5 --hold
    ```
    Leave out `--mixgate` or `--hold` to apply only one of the fixes. The script refuses to patch anything that isn't unpatched v1.3.0.
 2. Flash it with a SysEx tool (SysEx Librarian on macOS, Bome SendSX on Windows), following Moog's normal procedure:
@@ -74,15 +74,22 @@ Use a direct USB cable (no hub) and don't touch the synth during the transfer. I
 
 ### Paraphonic mixer gate length
 
-Note-off (`0x88de4`) doesn't close a released voice's mixer gate immediately when other keys are held. It marks the voice as release-pending with a timestamp, and the main loop (`0x8a56b`, at `0x8a81d`) closes the gate once `now - timestamp > engine.mixGateDelay`. The engine init (`0x8b3f0`) sets that delay:
+Note-off (`0x88de4`) doesn't close a released voice's mixer gate immediately when other keys are held. It marks every oscillator whose gate flag is 0 as release-pending with a timestamp, and the main loop (`0x8a56b`, at `0x8a81d`) closes a pending gate once `now - timestamp > engine.mixGateDelay`, but only if other keys are still down. The engine init (`0x8b3f0`) sets that delay to 125 ms:
 
 ```
 0008b98f  8d00 0ef4   MOVL XAR0,#0xef4
-0008b991  8f01 e848   MOVL XAR4,#0x1e848      ; 125000 us   <- the patch rewrites this immediate
+0008b991  8f01 e848   MOVL XAR4,#0x1e848      ; 125000 us
 0008b994  a893        MOVL *+XAR3[AR0],XAR4   ; engine(0x10640).mixGateDelay
 ```
 
-Only the release loop reads the field, and the setter at `0x88efc` is never called. The patch changes two 16-bit words. All other bytes of the `.syx` stay identical to Moog's, and the affected record's checksum is recomputed.
+Because every note-off restarts the timer for all pending gates, the hold does two jobs: it delays the cut-off, and it groups releases, so a lifted chord rings out with the envelope release as long as each key comes up within the hold time of the previous one. Shortening the hold (v1.0.0 to v1.2.0 of this project) fixed staccato but cut off chord releases with a long release time.
+
+The fix keeps Moog's 125 ms and adds two routines in unused flash:
+
+- **Note-on** (`0x88ca9` calls `0xa2040`): wraps the gate assignment `0x88a24` and stores the press time in the timestamp field (`+6`) of every oscillator that became gated. That field is only read while a release is pending.
+- **Note-off** (`0x88e65` calls `0xa2080`, replacing Moog's "mark released gates pending" block): for a just-released oscillator, if any held oscillator was pressed within 40 ms of it, it gets Moog's window (pending 1). Otherwise it gets the short hold (pending 2), with its timestamp back-dated so the 125 ms timer runs out after the short hold. Oscillators already in Moog's window are refreshed as Moog does. Short ones are left alone.
+
+The main loop, the gate closing and "keep gates open when the last key comes up" are Moog's, unchanged. The full disassembly is in `tools/patch_mixgate.py`.
 
 History, from comparing v1.1.0, v1.2.3 and v1.3.0:
 
@@ -157,7 +164,7 @@ python3 -m unittest discover -s tests -v
 npm test
 ```
 
-They check that both patchers produce files byte-identical to the builds tested on hardware. To try the web patcher locally, serve the `web/` folder (`python3 -m http.server -d web`) and open `http://localhost:8000`. It doesn't work when opened directly as a file.
+They check that both patchers produce files byte-identical to the expected builds. To try the web patcher locally, serve the `web/` folder (`python3 -m http.server -d web`) and open `http://localhost:8000`. It doesn't work when opened directly as a file.
 
 The `CI` workflow (`.github/workflows/ci.yml`) runs the linters and tests on every push and pull request. For the tests, it downloads Moog's official firmware from the URL their own updater uses. The file is only used for testing and is never published. When everything passes on `main`, the workflow deploys `web/` to GitHub Pages.
 

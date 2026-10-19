@@ -31,7 +31,7 @@ test("round trip is byte-identical", { skip }, () => {
     assert.deepEqual(Buffer.from(fw.bytes()), original);
 });
 
-test("mixer gate patch matches the hardware-tested builds", { skip }, () => {
+test("mixer gate patch matches the expected builds", { skip }, () => {
     for (const [ms, hash] of Object.entries(expected.mixgate)) {
         const fw = new Firmware(readFileSync(source));
         assert.deepEqual(mixGateState(fw), { state: "unpatched" });
@@ -57,6 +57,13 @@ test("rejects files that aren't Matriarch firmware", () => {
 
 test("web patcher knows the official v1.3.0 checksum", () => {
     assert.equal(OFFICIAL_V1_3_0_SHA256, expected.source.sha256);
+});
+
+test("files with the older mixer gate fix count as patched", { skip }, () => {
+    const fw = new Firmware(readFileSync(source));
+    fw.write(0x8b991, [0x8f00, 0x1388]); // v1.x of this project: 125 ms hold changed to 5 ms
+    assert.deepEqual(mixGateState(fw), { state: "patched", ms: 5 });
+    assert.throws(() => patchMixGate(fw, 5), FirmwareError);
 });
 
 test("HOLD patch matches the expected build", { skip }, () => {
