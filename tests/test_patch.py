@@ -65,7 +65,7 @@ class PatchTests(unittest.TestCase):
         wb = struct.unpack(f'<{len(b) // 2}H', b)
         changed = {0x88000 + i for i, (x, y) in enumerate(zip(wa, wb)) if x != y}
         expected = {0x88CA9, 0x88CAA, 0x88E65, 0x88E66, 0x88E67}
-        expected |= set(range(0xA2040, 0xA207C)) | set(range(0xA2080, 0xA20B5))
+        expected |= set(range(0xA2040, 0xA207C)) | set(range(0xA2080, 0xA20C4))
         self.assertEqual(changed, expected)
         self.assertEqual(patched.read(0x8B991, 2), [0x8F01, 0xE848])  # Moog's 125 ms stays
 

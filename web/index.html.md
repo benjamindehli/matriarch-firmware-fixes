@@ -1,6 +1,6 @@
 Page: Matriarch Firmware Patcher: fix paraphonic staccato on the Moog Matriarch
 URL: https://benjamindehli.github.io/matriarch-firmware-fixes/
-Last changed: 2026-10-19
+Last changed: 2026-10-25
 
 # Matriarch Firmware Patcher
 
@@ -47,7 +47,7 @@ Moog lists this as a known issue in the v1.3.0 release notes: _"Paraphonic Mixer
 | v1.3.0          | 125 ms                                               |
 | v1.3.0, patched | 5 ms, 50 ms or your own value, and 125 ms for chords |
 
-The hold also decides whether keys were lifted together: when you lift a chord, its notes ring out with the release only if each key comes up within the hold time of the previous one. So the patch keeps Moog's 125 ms for a note you pressed together with a key that's still held, and uses the short hold only for the others, such as staccato notes over a held chord or the notes of a fast run.
+The hold also decides whether keys were lifted together: when you lift a chord, its notes ring out with the release only if each key comes up within the hold time of the previous one. So the patch keeps Moog's 125 ms for a note you pressed together with a key that's still held, and uses the short hold only for the others, such as staccato notes over a held chord or the notes of a fast run. When every key of a chord is up but other keys are still held, such as a staccato chord over a held bass note, the whole chord stops after the short hold.
 
 Lifted chords ring out exactly as with Moog's firmware. When you release the last key, the VCA envelope's release shapes the tail as before, and Multi Trig and its envelope retrigger timing are untouched. The [technical details](https://github.com/benjamindehli/matriarch-firmware-fixes#how-the-fixes-work) are in the repository.
 

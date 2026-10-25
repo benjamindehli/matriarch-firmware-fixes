@@ -8,7 +8,7 @@ Unofficial bug fixes for the Moog Matriarch firmware v1.3.0, the last release be
 
 | Fix                                             | Web patcher | Script                   | Status                                            |
 | ----------------------------------------------- | ----------- | ------------------------ | ------------------------------------------------- |
-| Paraphonic Mixer Gate Length                    | Yes         | `tools/patch_mixgate.py` | Hardware test pending for the chord-aware version |
+| Paraphonic Mixer Gate Length                    | Yes         | `tools/patch_mixgate.py` | Tested on hardware, chords and staccato           |
 | HOLD sends sustain while the Arp/Seq is playing | Yes         | `tools/patch_holdcc.py`  | Tested on hardware, with a Yamaha DX7 on MIDI out |
 
 ### Paraphonic Mixer Gate Length
@@ -20,7 +20,7 @@ In 2- and 4-note paraphonic mode, releasing a key while another key is still hel
 - `--ms 5`: released notes stop almost immediately (recommended)
 - `--ms 50`: the v1.1.0 behaviour
 
-The hold also decides whether keys were lifted together: when you lift a chord, its notes ring out with the release only if each key comes up within the hold time of the previous one. So the fix keeps Moog's 125 ms for a note you pressed together with a key that's still held, and uses the short hold only for the others, such as staccato notes over a held chord or the notes of a fast run. Lifted chords ring out exactly as with Moog's firmware.
+The hold also decides whether keys were lifted together: when you lift a chord, its notes ring out with the release only if each key comes up within the hold time of the previous one. So the fix keeps Moog's 125 ms for a note you pressed together with a key that's still held, and uses the short hold only for the others, such as staccato notes over a held chord or the notes of a fast run. When every key of a chord is up but other keys are still held, such as a staccato chord over a held bass note, the whole chord stops after the short hold. Lifted chords ring out exactly as with Moog's firmware.
 
 When the _last_ key is released, the VCA envelope's release shapes the tail exactly as before.
 
@@ -87,7 +87,7 @@ Because every note-off restarts the timer for all pending gates, the hold does t
 The fix keeps Moog's 125 ms and adds two routines in unused flash:
 
 - **Note-on** (`0x88ca9` calls `0xa2040`): wraps the gate assignment `0x88a24` and stores the press time in the timestamp field (`+6`) of every oscillator that became gated. That field is only read while a release is pending.
-- **Note-off** (`0x88e65` calls `0xa2080`, replacing Moog's "mark released gates pending" block): for a just-released oscillator, if any held oscillator was pressed within 40 ms of it, it gets Moog's window (pending 1). Otherwise it gets the short hold (pending 2), with its timestamp back-dated so the 125 ms timer runs out after the short hold. Oscillators already in Moog's window are refreshed as Moog does. Short ones are left alone.
+- **Note-off** (`0x88e65` calls `0xa2080`, replacing Moog's "mark released gates pending" block): for a just-released oscillator, if any held oscillator was pressed within 40 ms of it, it gets Moog's window (pending 1). Otherwise it gets the short hold (pending 2), with its timestamp back-dated so the 125 ms timer runs out after the short hold. In that case, any oscillator still in Moog's window gets the short hold too, because the chord it was released from is no longer held. Otherwise oscillators already in Moog's window are refreshed as Moog does. Short ones are left alone.
 
 The main loop, the gate closing and "keep gates open when the last key comes up" are Moog's, unchanged. The full disassembly is in `tools/patch_mixgate.py`.
 

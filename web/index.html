@@ -85,7 +85,7 @@
                             "width": 1200,
                             "height": 630
                         },
-                        "dateModified": "2026-10-19"
+                        "dateModified": "2026-10-25"
                     },
                     {
                         "@type": "WebApplication",
@@ -433,7 +433,8 @@
                         out with the release only if each key comes up within the hold time of the previous one. So the
                         patch keeps Moog's 125 ms for a note you pressed together with a key that's still held, and uses
                         the short hold only for the others, such as staccato notes over a held chord or the notes of a
-                        fast run.
+                        fast run. When every key of a chord is up but other keys are still held, such as a staccato
+                        chord over a held bass note, the whole chord stops after the short hold.
                     </p>
                     <p>
                         Lifted chords ring out exactly as with Moog's firmware. When you release the last key, the VCA
