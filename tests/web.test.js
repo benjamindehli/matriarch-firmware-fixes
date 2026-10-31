@@ -39,6 +39,20 @@ test("mixer gate patch matches the expected builds", { skip }, () => {
         assert.equal(sha256(fw.bytes()), hash, `${ms} ms`);
         assert.deepEqual(mixGateState(new Firmware(fw.bytes())), {
             state: "patched",
+            mode: "chord",
+            ms: Number(ms),
+        });
+    }
+});
+
+test("simple mixer gate patch matches the v1.2.0 builds", { skip }, () => {
+    for (const [ms, hash] of Object.entries(expected.mixgate_simple)) {
+        const fw = new Firmware(readFileSync(source));
+        patchMixGate(fw, Number(ms), { simple: true });
+        assert.equal(sha256(fw.bytes()), hash, `${ms} ms`);
+        assert.deepEqual(mixGateState(new Firmware(fw.bytes())), {
+            state: "patched",
+            mode: "simple",
             ms: Number(ms),
         });
     }
@@ -48,6 +62,7 @@ test("refuses to patch twice", { skip }, () => {
     const fw = new Firmware(readFileSync(source));
     patchMixGate(fw, 5);
     assert.throws(() => patchMixGate(fw, 50), FirmwareError);
+    assert.throws(() => patchMixGate(fw, 50, { simple: true }), FirmwareError);
 });
 
 test("rejects files that aren't Matriarch firmware", () => {
@@ -59,10 +74,10 @@ test("web patcher knows the official v1.3.0 checksum", () => {
     assert.equal(OFFICIAL_V1_3_0_SHA256, expected.source.sha256);
 });
 
-test("files with the older mixer gate fix count as patched", { skip }, () => {
+test("files from v1.0.0 to v1.2.0 of this project count as simple mode", { skip }, () => {
     const fw = new Firmware(readFileSync(source));
-    fw.write(0x8b991, [0x8f00, 0x1388]); // v1.x of this project: 125 ms hold changed to 5 ms
-    assert.deepEqual(mixGateState(fw), { state: "patched", ms: 5 });
+    fw.write(0x8b991, [0x8f00, 0x1388]); // 125 ms hold changed to 5 ms
+    assert.deepEqual(mixGateState(fw), { state: "patched", mode: "simple", ms: 5 });
     assert.throws(() => patchMixGate(fw, 5), FirmwareError);
 });
 
@@ -76,14 +91,19 @@ test("HOLD patch matches the expected build", { skip }, () => {
 });
 
 test("fixes combine in any order", { skip }, () => {
-    for (const [ms, hash] of Object.entries(expected.mixgate_hold)) {
-        const first = new Firmware(readFileSync(source));
-        patchMixGate(first, Number(ms));
-        patchHold(first);
-        const second = new Firmware(readFileSync(source));
-        patchHold(second);
-        patchMixGate(second, Number(ms));
-        assert.equal(sha256(first.bytes()), hash, `${ms} ms`);
-        assert.deepEqual(Buffer.from(first.bytes()), Buffer.from(second.bytes()));
+    for (const [key, simple] of [
+        ["mixgate_hold", false],
+        ["mixgate_simple_hold", true],
+    ]) {
+        for (const [ms, hash] of Object.entries(expected[key])) {
+            const first = new Firmware(readFileSync(source));
+            patchMixGate(first, Number(ms), { simple });
+            patchHold(first);
+            const second = new Firmware(readFileSync(source));
+            patchHold(second);
+            patchMixGate(second, Number(ms), { simple });
+            assert.equal(sha256(first.bytes()), hash, `${key} ${ms} ms`);
+            assert.deepEqual(Buffer.from(first.bytes()), Buffer.from(second.bytes()));
+        }
     }
 });

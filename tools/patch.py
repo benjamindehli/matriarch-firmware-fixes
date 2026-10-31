@@ -2,9 +2,11 @@
 # Copyright (C) 2026 Benjamin Dehli
 """Apply one or more fixes to Moog Matriarch firmware v1.3.0.
 
-Usage: python3 patch.py <in.syx> <out.syx> [--mixgate MS] [--hold]
+Usage: python3 patch.py <in.syx> <out.syx> [--mixgate MS [--simple]] [--hold]
 
-  --mixgate MS  paraphonic mixer gate hold after key-up, in ms (v1.3.0: 125). See patch_mixgate.py.
+  --mixgate MS  paraphonic mixer gate hold after key-up, in ms (v1.3.0: 125). Notes pressed together
+                keep 125 ms so lifted chords ring out. See patch_mixgate.py.
+  --simple      with --mixgate: the same hold for every note, chords included (v1.0.0 to v1.2.0 of this project).
   --hold        HOLD sends sustain (CC 64) only while the Arp/Seq isn't running. See patch_holdcc.py.
 
 The fixes change separate parts of the firmware, so they can be combined in any order.
@@ -25,16 +27,22 @@ def main():
     ap.add_argument('src')
     ap.add_argument('dst')
     ap.add_argument('--mixgate', type=float, metavar='MS', help='paraphonic mixer gate hold in ms (recommended: 5)')
+    ap.add_argument('--simple', action='store_true', help='with --mixgate: same hold for every note, chords included')
     ap.add_argument('--hold', action='store_true', help='HOLD sends sustain only while the Arp/Seq is stopped')
     args = ap.parse_args()
     if args.mixgate is None and not args.hold:
         ap.error('choose at least one fix: --mixgate MS and/or --hold')
+    if args.simple and args.mixgate is None:
+        ap.error('--simple needs --mixgate MS')
 
     fw = Firmware(args.src)
     try:
         if args.mixgate is not None:
-            us = patch_mixgate.patch(fw, args.mixgate)
-            print(f'paraphonic mixer gate: chords keep 125 ms, other released notes {us / 1000:g} ms')
+            us = patch_mixgate.patch(fw, args.mixgate, args.simple)
+            if args.simple:
+                print(f'paraphonic mixer gate: released notes {us / 1000:g} ms, chords included')
+            else:
+                print(f'paraphonic mixer gate: chords keep 125 ms, other released notes {us / 1000:g} ms')
         if args.hold:
             patch_holdcc.patch(fw)
             print('HOLD: sustain CC 64 only while the Arp/Seq is stopped')

@@ -36,7 +36,11 @@ timestamp field (+6, only used while a release is pending) and decides at note-o
 The short hold is the immediate of MOVL XAR5,#us at 0xa20a7. The main loop, the gate closing and the
 "keep gates open when the last key comes up" logic are Moog's, unchanged.
 
-Usage: python3 patch_mixgate.py <in.syx> <out.syx> [--ms 5]
+With --simple, the fix instead changes Moog's 125 ms value at 0x8b991, as v1.0.0 to v1.2.0 of this
+project did. Every note released while other keys are held then stops after the hold, so with a short
+hold a chord lifted with a long release keeps only its last note or two.
+
+Usage: python3 patch_mixgate.py <in.syx> <out.syx> [--ms 5] [--simple]
 """
 
 import argparse
@@ -47,7 +51,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from matriarch_syx import Firmware  # noqa: E402
 
 HOLD_SITE = 0x8B991
-HOLD_ORIGINAL = [0x8F01, 0xE848]  # MOVL XAR4,#125000, left unchanged
+HOLD_ORIGINAL = [0x8F01, 0xE848]  # MOVL XAR4,#125000, changed only in simple mode
 
 NOTE_ON_SITE = 0x88CA9
 NOTE_ON_ORIGINAL = [0x7648, 0x8A24]  # LCR 0x00088a24
@@ -81,6 +85,10 @@ CODE_START = NOTE_ON_ADDR
 CODE_END = NOTE_OFF_ADDR + len(NOTE_OFF)
 
 
+def movl_xar4(value):
+    return [0x8F00 | (value >> 16), value & 0xFFFF]
+
+
 def movl_xar5(value):
     return [0x8F40 | (value >> 16), value & 0xFFFF]
 
@@ -93,6 +101,14 @@ def short_hold_us(fw):
     return ((hi & 0x3F) << 16) | lo
 
 
+def simple_hold_us(fw):
+    """The hold in a Firmware patched with --simple (or v1.0.0 to v1.2.0 of this project), in us, or None."""
+    hi, lo = fw.read(HOLD_SITE, 2)
+    if hi & 0xFFC0 != 0x8F00 or [hi, lo] == HOLD_ORIGINAL:
+        return None
+    return ((hi & 0x3F) << 16) | lo
+
+
 def is_unpatched(fw):
     return (
         fw.read(HOLD_SITE, 2) == HOLD_ORIGINAL
@@ -102,21 +118,24 @@ def is_unpatched(fw):
     )
 
 
-def patch(fw, ms):
-    """Set the short mixer gate hold in a v1.3.0 Firmware. Returns the hold in us."""
+def patch(fw, ms, simple=False):
+    """Set the short mixer gate hold in a v1.3.0 Firmware, chord-aware unless simple. Returns the hold in us."""
     if not is_unpatched(fw):
         short = short_hold_us(fw)
-        hi, lo = fw.read(HOLD_SITE, 2)
+        plain = simple_hold_us(fw)
         if short is not None:
-            reason = f'it already has this fix ({short / 1000:g} ms)'
-        elif hi & 0xFFC0 == 0x8F00 and [hi, lo] != HOLD_ORIGINAL:
-            reason = f'it already has an older mixer gate fix ({(((hi & 0x3F) << 16) | lo) / 1000:g} ms)'
+            reason = f'it already has the chord-aware mixer gate fix ({short / 1000:g} ms)'
+        elif plain is not None:
+            reason = f'it already has the simple mixer gate fix ({plain / 1000:g} ms)'
         else:
             reason = 'it is not unpatched Matriarch firmware v1.3.0'
         raise ValueError(f"can't patch this file: {reason}. Start from Moog's original v1.3.0 file.")
     us = int(round(ms * 1000))
     if not 0 <= us <= 125000:
         raise ValueError(f'hold out of range: {ms} ms (0 to 125)')
+    if simple:
+        fw.write(HOLD_SITE, movl_xar4(us))
+        return us
     off = list(NOTE_OFF)
     off[SHORT_OFFSET : SHORT_OFFSET + 2] = movl_xar5(us)
     fw.write(NOTE_ON_ADDR, NOTE_ON)
@@ -131,15 +150,19 @@ def main():
     ap.add_argument('src')
     ap.add_argument('dst')
     ap.add_argument('--ms', type=float, default=5.0, help='mixer gate hold in ms (v1.3.0: 125, recommended: 5)')
+    ap.add_argument('--simple', action='store_true', help='the same hold for every note, chords included')
     args = ap.parse_args()
 
     fw = Firmware(args.src)
     try:
-        us = patch(fw, args.ms)
+        us = patch(fw, args.ms, args.simple)
     except ValueError as e:
         sys.exit(str(e))
     fw.save(args.dst)
-    print(f'patched mixer gate: chords keep 125000 us, other released notes {us} us')
+    if args.simple:
+        print(f'patched mixer gate: released notes {us} us, chords included')
+    else:
+        print(f'patched mixer gate: chords keep 125000 us, other released notes {us} us')
 
 
 if __name__ == '__main__':
