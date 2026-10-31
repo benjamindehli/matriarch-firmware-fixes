@@ -1,5 +1,6 @@
-# Opens pull requests when the GitHub Actions used in .github/workflows get new versions,
-# so the workflows don't fall behind (for example when a Node.js runtime is deprecated).
+# Opens pull requests when the GitHub Actions used in .github/workflows or the npm dev tools (Prettier)
+# get new versions, so the workflows don't fall behind (for example when a Node.js runtime is deprecated).
+# The actions are pinned to commit SHAs with the version in a comment, and Dependabot updates both.
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -10,3 +11,7 @@ updates:
       actions:
         patterns:
           - "*"
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
