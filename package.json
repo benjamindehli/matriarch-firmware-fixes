@@ -9,6 +9,6 @@
     "test": "node --test tests/*.test.js"
   },
   "devDependencies": {
-    "prettier": "3.3.3"
+    "prettier": "3.9.10"
   }
 }
