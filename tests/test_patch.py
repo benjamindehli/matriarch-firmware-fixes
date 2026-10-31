@@ -69,11 +69,32 @@ class PatchTests(unittest.TestCase):
         self.assertEqual(changed, expected)
         self.assertEqual(patched.read(0x8B991, 2), [0x8F01, 0xE848])  # Moog's 125 ms stays
 
-    def test_refuses_files_with_the_older_mixgate_fix(self):
+    def test_simple_mixgate_patch_matches_v1_2_0_builds(self):
+        for ms, expected in EXPECTED['mixgate_simple'].items():
+            with self.subTest(ms=ms):
+                fw = Firmware(SOURCE)
+                patch(fw, float(ms), simple=True)
+                self.assertEqual(sha256(bytes(fw.raw)), expected)
+
+    def test_simple_mixgate_patch_changes_only_the_hold(self):
         fw = Firmware(SOURCE)
-        fw.write(0x8B991, [0x8F00, 0x1388])  # v1.x of this project: 125 ms hold changed to 5 ms
+        patch(fw, 5, simple=True)
+        _, a = Firmware(SOURCE).image()
+        _, b = fw.image()
+        wa = struct.unpack(f'<{len(a) // 2}H', a)
+        wb = struct.unpack(f'<{len(b) // 2}H', b)
+        changed = {0x88000 + i for i, (x, y) in enumerate(zip(wa, wb)) if x != y}
+        self.assertEqual(changed, {0x8B991, 0x8B992})
+
+    def test_refuses_files_with_the_other_mixgate_mode(self):
+        fw = Firmware(SOURCE)
+        fw.write(0x8B991, [0x8F00, 0x1388])  # simple mode, also v1.0.0 to v1.2.0 of this project
         with self.assertRaises(ValueError):
             patch(fw, 5)
+        fw = Firmware(SOURCE)
+        patch(fw, 5)
+        with self.assertRaises(ValueError):
+            patch(fw, 5, simple=True)
 
     def test_refuses_to_patch_twice(self):
         fw = Firmware(SOURCE)
@@ -104,16 +125,17 @@ class PatchTests(unittest.TestCase):
         self.assertEqual(changed, expected)
 
     def test_fixes_combine_in_any_order(self):
-        for ms, expected in EXPECTED['mixgate_hold'].items():
-            with self.subTest(ms=ms):
-                first = Firmware(SOURCE)
-                patch(first, float(ms))
-                patch_holdcc.patch(first)
-                second = Firmware(SOURCE)
-                patch_holdcc.patch(second)
-                patch(second, float(ms))
-                self.assertEqual(sha256(bytes(first.raw)), expected)
-                self.assertEqual(bytes(first.raw), bytes(second.raw))
+        for key, simple in (('mixgate_hold', False), ('mixgate_simple_hold', True)):
+            for ms, expected in EXPECTED[key].items():
+                with self.subTest(ms=ms, simple=simple):
+                    first = Firmware(SOURCE)
+                    patch(first, float(ms), simple)
+                    patch_holdcc.patch(first)
+                    second = Firmware(SOURCE)
+                    patch_holdcc.patch(second)
+                    patch(second, float(ms), simple)
+                    self.assertEqual(sha256(bytes(first.raw)), expected)
+                    self.assertEqual(bytes(first.raw), bytes(second.raw))
 
 
 if __name__ == '__main__':

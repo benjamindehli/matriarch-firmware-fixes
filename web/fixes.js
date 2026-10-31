@@ -12,7 +12,7 @@ const equal = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
 
 // Mixer gate fix: see tools/patch_mixgate.py for the description.
 const MIXGATE_HOLD_SITE = 0x8b991;
-const MIXGATE_HOLD_ORIGINAL = [0x8f01, 0xe848]; // MOVL XAR4,#125000, left unchanged
+const MIXGATE_HOLD_ORIGINAL = [0x8f01, 0xe848]; // MOVL XAR4,#125000, changed only in simple mode
 const NOTE_ON_SITE = 0x88ca9;
 const NOTE_ON_ORIGINAL = [0x7648, 0x8a24]; // LCR 0x00088a24
 const NOTE_ON_PATCHED = [0x764a, 0x2040]; // LCR 0x000a2040
@@ -42,9 +42,9 @@ const SHORT_OFFSET = 39; // MOVL XAR5,#short at NOTE_OFF_ADDR + 39
 const CODE_END = NOTE_OFF_ADDR + NOTE_OFF.length;
 
 /**
- * Describe the mixer gate fix in a firmware file. Recognises both this fix and the older one
- * (v1.x of this project, which changed the 125 ms hold itself).
- * @returns {{state: "unpatched"} | {state: "patched", ms: number} | {state: "unsupported"}}
+ * Describe the mixer gate fix in a firmware file. Recognises both modes: chord-aware, and simple
+ * (also what v1.0.0 to v1.2.0 of this project made), which changes the 125 ms hold itself.
+ * @returns {{state: "unpatched"} | {state: "patched", mode: "chord" | "simple", ms: number} | {state: "unsupported"}}
  */
 export function mixGateState(fw) {
     const hold = fw.read(MIXGATE_HOLD_SITE, 2);
@@ -52,11 +52,11 @@ export function mixGateState(fw) {
     const offSite = fw.read(NOTE_OFF_SITE, 3);
     if (equal(onSite, NOTE_ON_PATCHED) && equal(offSite, NOTE_OFF_PATCHED)) {
         const [hi, lo] = fw.read(NOTE_OFF_ADDR + SHORT_OFFSET, 2);
-        return { state: "patched", ms: (((hi & 0x3f) << 16) | lo) / 1000 };
+        return { state: "patched", mode: "chord", ms: (((hi & 0x3f) << 16) | lo) / 1000 };
     }
     if (fw.version !== "1.3.0") return { state: "unsupported" };
     if (!equal(hold, MIXGATE_HOLD_ORIGINAL) && (hold[0] & 0xffc0) === 0x8f00) {
-        return { state: "patched", ms: (((hold[0] & 0x3f) << 16) | hold[1]) / 1000 };
+        return { state: "patched", mode: "simple", ms: (((hold[0] & 0x3f) << 16) | hold[1]) / 1000 };
     }
     const free = fw.read(NOTE_ON_ADDR, CODE_END - NOTE_ON_ADDR);
     if (
@@ -72,15 +72,20 @@ export function mixGateState(fw) {
 
 /**
  * Shorten the paraphonic mixer gate hold for notes released while other keys are held, unless they
- * were pressed together with one of them. Chords keep Moog's 125 ms. Returns the short hold in us.
+ * were pressed together with one of them. Chords keep Moog's 125 ms. With simple, every note gets the
+ * short hold, chords included. Returns the short hold in us.
  */
-export function patchMixGate(fw, ms) {
+export function patchMixGate(fw, ms, { simple = false } = {}) {
     if (mixGateState(fw).state !== "unpatched") {
         throw new FirmwareError("Only unpatched Matriarch firmware v1.3.0 can be patched.");
     }
     const us = Math.round(ms * 1000);
     if (!Number.isFinite(us) || us < 0 || us > 125000) {
         throw new FirmwareError(`Hold out of range: ${ms} ms (0 to 125).`);
+    }
+    if (simple) {
+        fw.write(MIXGATE_HOLD_SITE, [0x8f00 | (us >> 16), us & 0xffff]); // MOVL XAR4,#us
+        return us;
     }
     const off = NOTE_OFF.slice();
     off.splice(SHORT_OFFSET, 2, 0x8f40 | (us >> 16), us & 0xffff); // MOVL XAR5,#us

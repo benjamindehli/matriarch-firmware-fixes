@@ -1,6 +1,6 @@
 Page: Matriarch Firmware Patcher: fix paraphonic staccato on the Moog Matriarch
 URL: https://benjamindehli.github.io/matriarch-firmware-fixes/
-Last changed: 2026-10-25
+Last changed: 2026-10-31
 
 # Matriarch Firmware Patcher
 
@@ -40,14 +40,17 @@ _The same MIDI part recorded on a Matriarch with the original firmware (125 ms),
 
 Moog lists this as a known issue in the v1.3.0 release notes: _"Paraphonic Mixer Gate Length - Mixer gate can stay high longer than keys are pressed."_ The hold was added on purpose, to avoid completely missing quickly played notes, and it has grown since firmware v1.1.0:
 
-| Firmware        | Hold after key-up                                    |
-| --------------- | ---------------------------------------------------- |
-| v1.1.0          | 50 ms                                                |
-| v1.2.3          | 125 ms                                               |
-| v1.3.0          | 125 ms                                               |
-| v1.3.0, patched | 5 ms, 50 ms or your own value, and 125 ms for chords |
+| Firmware                      | Hold after key-up                                    |
+| ----------------------------- | ---------------------------------------------------- |
+| v1.1.0                        | 50 ms                                                |
+| v1.2.3                        | 125 ms                                               |
+| v1.3.0                        | 125 ms                                               |
+| v1.3.0, patched (chord-aware) | 5 ms, 50 ms or your own value, and 125 ms for chords |
+| v1.3.0, patched (simple)      | 5 ms, 50 ms or your own value, chords included       |
 
 The hold also decides whether keys were lifted together: when you lift a chord, its notes ring out with the release only if each key comes up within the hold time of the previous one. So the patch keeps Moog's 125 ms for a note you pressed together with a key that's still held, and uses the short hold only for the others, such as staccato notes over a held chord or the notes of a fast run. When every key of a chord is up but other keys are still held, such as a staccato chord over a held bass note, the whole chord stops after the short hold.
+
+If you prefer one fixed cut-off, the patcher's simple mode gives every released note the short hold, chords included, as versions 1.0.0 to 1.2.0 of this patcher did. With a short hold and a long release, a lifted chord then keeps only its last note or two.
 
 Lifted chords ring out exactly as with Moog's firmware. When you release the last key, the VCA envelope's release shapes the tail as before, and Multi Trig and its envelope retrigger timing are untouched. The [technical details](https://github.com/benjamindehli/matriarch-firmware-fixes#how-the-fixes-work) are in the repository.
 
@@ -111,7 +114,11 @@ Flash Moog's original `Matriarch_Firmware_v1_3_0.syx` with the same procedure: s
 
 ### Which delay should I choose?
 
-5 ms is recommended. Released notes stop almost immediately, which suits staccato playing, and chords you lift still ring out with the release, because notes you press together keep Moog's 125 ms. 50 ms is how firmware v1.1.0 behaved, if you prefer a softer cut-off.
+5 ms is recommended. Released notes stop almost immediately, which suits staccato playing, and in the chord-aware mode chords you lift still ring out with the release, because notes you press together keep Moog's 125 ms. 50 ms gives a softer cut-off. In the simple mode it's how firmware v1.1.0 behaved.
+
+### Should I choose chord-aware or simple?
+
+Chord-aware is recommended. Staccato notes and fast runs stop after the delay, while chords you lift still ring out with the release. Choose simple if you'd rather have the same cut-off for every note, for example if you mostly play with a short release. With simple and a long release, a lifted chord keeps only its last note or two with 5 ms, while 50 ms lets most lifted chords ring out.
 
 ### Does the patch affect Multi Trig or the stuck-envelope fixes?
 

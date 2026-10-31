@@ -85,7 +85,7 @@
                             "width": 1200,
                             "height": 630
                         },
-                        "dateModified": "2026-10-25"
+                        "dateModified": "2026-10-31"
                     },
                     {
                         "@type": "WebApplication",
@@ -96,7 +96,7 @@
                         "applicationCategory": "UtilitiesApplication",
                         "operatingSystem": "Any",
                         "browserRequirements": "Requires JavaScript",
-                        "softwareVersion": "1.3.0",
+                        "softwareVersion": "1.4.0",
                         "isAccessibleForFree": true,
                         "offers": { "@type": "Offer", "price": 0, "priceCurrency": "USD" },
                         "license": "https://www.gnu.org/licenses/gpl-3.0.html",
@@ -195,7 +195,15 @@
                                 "name": "Which delay should I choose?",
                                 "acceptedAnswer": {
                                     "@type": "Answer",
-                                    "text": "5 ms is recommended. Released notes stop almost immediately, which suits staccato playing, and chords you lift still ring out with the release, because notes you press together keep Moog's 125 ms. 50 ms is how firmware v1.1.0 behaved, if you prefer a softer cut-off."
+                                    "text": "5 ms is recommended. Released notes stop almost immediately, which suits staccato playing, and in the chord-aware mode chords you lift still ring out with the release, because notes you press together keep Moog's 125 ms. 50 ms gives a softer cut-off. In the simple mode it's how firmware v1.1.0 behaved."
+                                }
+                            },
+                            {
+                                "@type": "Question",
+                                "name": "Should I choose chord-aware or simple?",
+                                "acceptedAnswer": {
+                                    "@type": "Answer",
+                                    "text": "Chord-aware is recommended. Staccato notes and fast runs stop after the delay, while chords you lift still ring out with the release. Choose simple if you'd rather have the same cut-off for every note, for example if you mostly play with a short release. With simple and a long release, a lifted chord keeps only its last note or two with 5 ms, while 50 ms lets most lifted chords ring out."
                                 }
                             },
                             {
@@ -301,33 +309,61 @@
                             </legend>
                             <p class="hint">
                                 In paraphonic mode, a released key keeps sounding for 125 ms while other keys are held.
-                                Choose how long it should keep sounding instead. Keys you press together still ring out
-                                together when you lift them.
+                                Choose how long it should keep sounding instead, and how lifted chords are handled.
                             </p>
-                            <label class="option">
-                                <input type="radio" name="ms" value="5" checked />
-                                <span>5 ms<small>Released notes stop almost immediately. Recommended.</small></span>
-                            </label>
-                            <label class="option">
-                                <input type="radio" name="ms" value="50" />
-                                <span>50 ms<small>The same behaviour as firmware v1.1.0.</small></span>
-                            </label>
-                            <label class="option">
-                                <input type="radio" name="ms" value="custom" />
-                                <span
-                                    >Custom:
-                                    <input
-                                        type="number"
-                                        id="custom-ms"
-                                        min="0"
-                                        max="125"
-                                        step="1"
-                                        value="20"
-                                        aria-label="Custom delay in milliseconds"
-                                    />
-                                    ms<small>Any whole number from 0 to 125.</small></span
-                                >
-                            </label>
+                            <div role="radiogroup" aria-labelledby="delay-label">
+                                <p class="choice-label" id="delay-label">Delay</p>
+                                <label class="option">
+                                    <input type="radio" name="ms" value="5" checked />
+                                    <span>5 ms<small>Released notes stop almost immediately. Recommended.</small></span>
+                                </label>
+                                <label class="option">
+                                    <input type="radio" name="ms" value="50" />
+                                    <span
+                                        >50 ms<small
+                                            >A softer cut-off. In simple mode, the same as firmware v1.1.0.</small
+                                        ></span
+                                    >
+                                </label>
+                                <label class="option">
+                                    <input type="radio" name="ms" value="custom" />
+                                    <span
+                                        >Custom:
+                                        <input
+                                            type="number"
+                                            id="custom-ms"
+                                            min="0"
+                                            max="125"
+                                            step="1"
+                                            value="20"
+                                            aria-label="Custom delay in milliseconds"
+                                        />
+                                        ms<small>Any whole number from 0 to 125.</small></span
+                                    >
+                                </label>
+                            </div>
+                            <div role="radiogroup" aria-labelledby="mode-label">
+                                <p class="choice-label" id="mode-label">Chords</p>
+                                <label class="option">
+                                    <input type="radio" name="mode" value="chord" checked />
+                                    <span
+                                        >Chord-aware<small
+                                            >Keys you press together keep Moog's 125 ms, so they still ring out together
+                                            when you lift them. Recommended.</small
+                                        ></span
+                                    >
+                                </label>
+                                <label class="option">
+                                    <input type="radio" name="mode" value="simple" />
+                                    <span
+                                        >Simple<small
+                                            >Every released note gets the delay, chords included. With a short delay and
+                                            a long release, a lifted chord keeps only its last note or two. How versions
+                                            1.0.0 to 1.2.0 of this patcher worked.</small
+                                        ></span
+                                    >
+                                </label>
+                            </div>
                         </fieldset>
                         <fieldset id="hold" disabled>
                             <legend>
@@ -422,8 +458,12 @@
                                     <td>125 ms</td>
                                 </tr>
                                 <tr>
-                                    <td>v1.3.0, patched</td>
+                                    <td>v1.3.0, patched (chord-aware)</td>
                                     <td>5 ms, 50 ms or your own value, and 125 ms for chords</td>
+                                </tr>
+                                <tr>
+                                    <td>v1.3.0, patched (simple)</td>
+                                    <td>5 ms, 50 ms or your own value, chords included</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -435,6 +475,11 @@
                         the short hold only for the others, such as staccato notes over a held chord or the notes of a
                         fast run. When every key of a chord is up but other keys are still held, such as a staccato
                         chord over a held bass note, the whole chord stops after the short hold.
+                    </p>
+                    <p>
+                        If you prefer one fixed cut-off, the patcher's simple mode gives every released note the short
+                        hold, chords included, as versions 1.0.0 to 1.2.0 of this patcher did. With a short hold and a
+                        long release, a lifted chord then keeps only its last note or two.
                     </p>
                     <p>
                         Lifted chords ring out exactly as with Moog's firmware. When you release the last key, the VCA
@@ -585,8 +630,19 @@
                         <summary>Which delay should I choose?</summary>
                         <p>
                             5 ms is recommended. Released notes stop almost immediately, which suits staccato playing,
-                            and chords you lift still ring out with the release, because notes you press together keep
-                            Moog's 125 ms. 50 ms is how firmware v1.1.0 behaved, if you prefer a softer cut-off.
+                            and in the chord-aware mode chords you lift still ring out with the release, because notes
+                            you press together keep Moog's 125 ms. 50 ms gives a softer cut-off. In the simple mode it's
+                            how firmware v1.1.0 behaved.
+                        </p>
+                    </details>
+                    <details>
+                        <summary>Should I choose chord-aware or simple?</summary>
+                        <p>
+                            Chord-aware is recommended. Staccato notes and fast runs stop after the delay, while chords
+                            you lift still ring out with the release. Choose simple if you'd rather have the same
+                            cut-off for every note, for example if you mostly play with a short release. With simple and
+                            a long release, a lifted chord keeps only its last note or two with 5 ms, while 50 ms lets
+                            most lifted chords ring out.
                         </p>
                     </details>
                     <details>
@@ -687,7 +743,10 @@
                 url = null;
                 const mix = useMixgate.checked;
                 const hold = useHold.checked;
-                for (const input of document.querySelectorAll('input[name="ms"], #custom-ms')) input.disabled = !mix;
+                for (const input of document.querySelectorAll('input[name="ms"], input[name="mode"], #custom-ms')) {
+                    input.disabled = !mix;
+                }
+                const simple = document.querySelector('input[name="mode"]:checked').value === "simple";
                 const ms = mix ? selectedMs() : null;
                 const problem =
                     !mix && !hold
@@ -702,10 +761,11 @@
                     return;
                 }
                 const fw = new Firmware(source);
-                if (mix) patchMixGate(fw, ms);
+                if (mix) patchMixGate(fw, ms, { simple });
                 if (hold) patchHold(fw);
                 const bytes = fw.bytes();
-                const name = `Matriarch_Firmware_v1_3_0${mix ? `_mixgate${ms}ms` : ""}${hold ? "_hold" : ""}.syx`;
+                const gate = mix ? `_mixgate${ms}ms${simple ? "_simple" : ""}` : "";
+                const name = `Matriarch_Firmware_v1_3_0${gate}${hold ? "_hold" : ""}.syx`;
                 url = URL.createObjectURL(new Blob([bytes], { type: "application/octet-stream" }));
                 download.href = url;
                 download.download = name;
@@ -731,7 +791,8 @@
                     const holdFix = holdState(fw);
                     if (gate.state === "patched" || holdFix.state === "patched") {
                         const applied = [
-                            gate.state === "patched" && `mixer gate ${gate.ms} ms`,
+                            gate.state === "patched" &&
+                                `mixer gate ${gate.ms} ms, ${gate.mode === "simple" ? "simple" : "chord-aware"}`,
                             holdFix.state === "patched" && "HOLD",
                         ].filter(Boolean);
                         setStatus(

@@ -498,6 +498,12 @@ figcaption {
 
 /* ---- fix choices ------------------------------------------------------- */
 
+.choice-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0.75rem 0 0;
+}
+
 #options fieldset + fieldset {
     margin-top: 1.25rem;
 }

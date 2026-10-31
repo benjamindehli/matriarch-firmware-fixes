@@ -11,8 +11,8 @@ authors:
 repository-code: "https://github.com/benjamindehli/matriarch-firmware-fixes"
 url: "https://benjamindehli.github.io/matriarch-firmware-fixes/"
 license: GPL-3.0-or-later
-version: 1.3.0
-date-released: "2026-10-25"
+version: 1.4.0
+date-released: "2026-10-31"
 keywords:
   - Moog Matriarch
   - synthesizer

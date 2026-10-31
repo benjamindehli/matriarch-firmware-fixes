@@ -22,6 +22,8 @@ In 2- and 4-note paraphonic mode, releasing a key while another key is still hel
 
 The hold also decides whether keys were lifted together: when you lift a chord, its notes ring out with the release only if each key comes up within the hold time of the previous one. So the fix keeps Moog's 125 ms for a note you pressed together with a key that's still held, and uses the short hold only for the others, such as staccato notes over a held chord or the notes of a fast run. When every key of a chord is up but other keys are still held, such as a staccato chord over a held bass note, the whole chord stops after the short hold. Lifted chords ring out exactly as with Moog's firmware.
 
+With `--simple`, every released note gets the short hold, chords included, as in v1.0.0 to v1.2.0 of this project. It's predictable and suits short releases, but with a short hold and a long release, a lifted chord keeps only its last note or two. The chord-aware mode is the default and recommended.
+
 When the _last_ key is released, the VCA envelope's release shapes the tail exactly as before.
 
 [![Waveforms in Logic Pro: the same MIDI part recorded with the original 125 ms hold, 50 ms and 5 ms. With 125 ms each short note keeps sounding well after it ends, with 5 ms it stops right at the end of the note.](web/audio-test-1200.webp)](web/audio-test.webp)
@@ -60,7 +62,7 @@ You need Python 3.
    ```sh
    python3 tools/patch.py Matriarch_Firmware_v1_3_0.syx Matriarch_Firmware_v1_3_0_patched.syx --mixgate 5 --hold
    ```
-   Leave out `--mixgate` or `--hold` to apply only one of the fixes. The script refuses to patch anything that isn't unpatched v1.3.0.
+   Leave out `--mixgate` or `--hold` to apply only one of the fixes. Add `--simple` for the simple mixer gate mode. The script refuses to patch anything that isn't unpatched v1.3.0.
 2. Flash it with a SysEx tool (SysEx Librarian on macOS, Bome SendSX on Windows), following Moog's normal procedure:
    1. Send `Matriarch_FIRMWARE_INVALIDATE.syx`.
    2. Re-select the Matriarch as the MIDI output (it reboots).
@@ -90,6 +92,8 @@ The fix keeps Moog's 125 ms and adds two routines in unused flash:
 - **Note-off** (`0x88e65` calls `0xa2080`, replacing Moog's "mark released gates pending" block): for a just-released oscillator, if any held oscillator was pressed within 40 ms of it, it gets Moog's window (pending 1). Otherwise it gets the short hold (pending 2), with its timestamp back-dated so the 125 ms timer runs out after the short hold. In that case, any oscillator still in Moog's window gets the short hold too, because the chord it was released from is no longer held. Otherwise oscillators already in Moog's window are refreshed as Moog does. Short ones are left alone.
 
 The main loop, the gate closing and "keep gates open when the last key comes up" are Moog's, unchanged. The full disassembly is in `tools/patch_mixgate.py`.
+
+The simple mode (`--simple`) changes only the 125 ms value at `0x8b991`, the same patch as v1.0.0 to v1.2.0 of this project. Its builds are byte-identical to those releases.
 
 History, from comparing v1.1.0, v1.2.3 and v1.3.0:
 
@@ -131,7 +135,7 @@ Two details matter. The Arp/Seq latch (`0xe4c0 + 0xa5`) can't be used, because t
 | File                     | Purpose                                                                                                                                                                                                                                             |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `tools/matriarch_syx.py` | Parses `.syx` files, verifies checksums and patches words in place                                                                                                                                                                                  |
-| `tools/patch.py`         | Applies one or more fixes (`--mixgate MS`, `--hold`)                                                                                                                                                                                                |
+| `tools/patch.py`         | Applies one or more fixes (`--mixgate MS`, `--simple`, `--hold`)                                                                                                                                                                                    |
 | `tools/patch_mixgate.py` | The mixer gate fix                                                                                                                                                                                                                                  |
 | `tools/patch_holdcc.py`  | The HOLD sustain fix, with its disassembly                                                                                                                                                                                                          |
 | `tools/syx2bin.py`       | Extracts a flat image to load at word address `0x88000`                                                                                                                                                                                             |
